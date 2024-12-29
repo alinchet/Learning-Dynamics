@@ -1,25 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import bernoulli
 import random
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 # Parameters
-b = 5  # Benefit of cooperation
-c = 1  # Cost of cooperation
+b = 5   # Benefit of cooperation
+c = 1   # Cost of cooperation
 
 # Payoff matrices
-A_in = np.array([[b - c, -c], [b, 0]])
-A_out = np.array([[b - c, -c], [b, 0]])
+A_in = np.array([
+        [b-c, b-c, -c, -c],
+        [b-c, b-c, -c, -c],
+        [b, b, 0, 0],
+        [b, b, 0, 0],
+    ])
+A_out = np.array([
+        [b-c, -c, b-c, -c],
+        [b, 0, b, 0],
+        [b-c, -c, b-c, -c],
+        [b, 0, b, 0],
+    ])
 
 # Strategies
 strategies = {
-    "Altruist": (1, 1),    # Cooperates with in- and out-group
-    "Parochialist": (1, 0),  # Cooperates with in-group only
-    "Traitor": (0, 1),     # Cooperates with out-group only
-    "Egoist": (0, 0),      # Does not cooperate
+    "Altruist": 0,     # Cooperates with in- and out-group
+    "Parochialist": 1, # Cooperates with in-group only
+    "Traitor": 2,      # Cooperates with out-group only
+    "Egoist": 3,       # Does not cooperate
 }
 
 def compute_payoff(strategy1, strategy2, in_group=True):
@@ -28,11 +37,9 @@ def compute_payoff(strategy1, strategy2, in_group=True):
     return matrix[strategy1, strategy2]
 
 # Example computation
-strategy1, strategy2 = 0, 1  # Altruist vs. Egoist
+strategy1, strategy2 = 0, 3  # Altruist vs. Egoist
 payoff = compute_payoff(strategy1, strategy2, in_group=True)
 print(f"Payoff (In-Group): {payoff}")
-
-
 
 
 class Population:
@@ -72,8 +79,8 @@ class Population:
         in_group_payoff = 0
         out_group_payoff = 0
         
-        for i, strategy in enumerate(group):
-            for j, other_strategy in enumerate(group):
+        for _, strategy in enumerate(group):
+            for _, other_strategy in enumerate(group):
                 in_group_payoff += compute_payoff(
                     strategy1=strategies[strategy][0],
                     strategy2=strategies[other_strategy][0],
@@ -97,9 +104,12 @@ class Population:
         """
         pairings = random.sample(range(self.num_groups), 2)
         payoffs = [
-            self.compute_group_payoff(group, alpha) for group in pairings
+            self.compute_group_payoff(group_index, alpha) for group_index in pairings
         ]
-        
+        ###ERROR : We have to compute the probability to win based on the group's payoff
+        """
+        P(Gi) = (Gi**(1/z))/(Gi**(1/z)+Gj**(1/z))
+        """
         # Higher payoff group wins, lower is replaced
         if payoffs[0] > payoffs[1]:
             self.groups[pairings[1]] = self.groups[pairings[0]][:]
@@ -148,9 +158,6 @@ for generation in range(max_generations):
         break
 else:
     print("Fixation not achieved within the generation limit.")
-
-
-
 
 
 def simulate_fixation(num_groups, group_size, alpha, conflict_rate, strategy, max_generations=1000):
