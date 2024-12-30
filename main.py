@@ -142,7 +142,7 @@ def compute_individual_interaction(individual_1:Individual,individual_2:Individu
     
     individual_1.payoff+=current_payoffs[0]
     individual_2.payoff+=current_payoffs[1]
-
+µ
 # create population
 
 
