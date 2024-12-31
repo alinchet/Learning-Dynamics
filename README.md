@@ -81,3 +81,9 @@ The model represents an **absorbing Markov chain** where a mutant strategy (eith
    python src/main.py
    ```
 
+3. **Run a Test**  
+   ```bash
+   python -m unittest discover -s test -p "test_individual.py"
+   python -m unittest discover -s test -p "test_population.py"
+   ```
+
