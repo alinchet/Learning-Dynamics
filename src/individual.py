@@ -73,7 +73,7 @@ class Individual:
             payoff_matrix (list[list[float]]): Payoff matrix for strategies.
         """
         try:
-            self.payoff = payoff_matrix[self.strategy][other.strategy]
+            self.payoff = payoff_matrix[self.strategy.value][other.strategy.value]
         except (IndexError, KeyError):
             raise ValueError("Invalid strategy combination in payoff matrix.")
 
