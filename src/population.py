@@ -4,14 +4,6 @@ from src.config import n, q, lambda_mig
 import random
 import copy
 
-
-class Population:
-    """Class to represent a population of groups."""
-
-    from individual import Individual
-from constants import Strategy
-
-
 class Population:
     """Class to represent a population of groups."""
 
