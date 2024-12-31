@@ -1,4 +1,4 @@
-from population import Population
+from src.population import Population
 
 def main():
     population = Population(num_groups=10, num_individuals=10)
