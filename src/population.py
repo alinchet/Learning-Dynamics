@@ -167,12 +167,13 @@ class Population:
 
     # --- REPRODUCTION ---
 
-    def select_individual_for_duplication(self) -> Individual:
+    def select_individual_for_duplication(self) -> tuple[Individual, int]:
         """
-        Select an individual for duplication based on fitness-proportional probabilities.
+        Select an individual for duplication based on fitness-proportional probabilities,
+        and return the individual along with the index of the group it was selected from.
 
         Returns:
-            Individual: Selected individual for duplication.
+            tuple: A tuple containing the selected individual and the index of the group it was selected from.
         """
         # Compute total fitness across all groups
         total_fitness = sum(individual.fitness for group in self.groups for individual in group)
@@ -180,23 +181,27 @@ class Population:
         # Handle edge case where all individuals have zero fitness
         if total_fitness == 0:
             # Select randomly if no fitness differentiation exists
-            individuals = [individual for group in self.groups for individual in group]
-            return copy.copy(random.choice(individuals))
+            group_index = random.randint(0, len(self.groups) - 1)
+            individual = random.choice(self.groups[group_index])
+            return copy.copy(individual), group_index
 
         # Calculate fitness-proportional probabilities
         probabilities = [individual.fitness / total_fitness for group in self.groups for individual in group]
         individuals = [individual for group in self.groups for individual in group]
+        group_indices = [i for i in range(len(self.groups)) for _ in self.groups[i]]
 
         # Select one individual based on fitness-weighted probabilities
-        return copy.copy(random.choices(individuals, weights=probabilities, k=1)[0])
+        selected_individual = random.choices(individuals, weights=probabilities, k=1)[0]
+
+        # Find the group index of the selected individual
+        selected_group_index = group_indices[individuals.index(selected_individual)]
+
+        return copy.copy(selected_individual), selected_group_index
 
     def reproduce(self):
         """ Simulate reproduction based on fitness-proportional selection. """
         # Select an individual to duplicate
-        new_individual = self.select_individual_for_duplication()
-
-        # Find the current group of the selected individual
-        parent_group_index = self.get_group(new_individual)
+        new_individual, parent_group_index = self.select_individual_for_duplication()
 
         if random.random() < lambda_mig:
             # Migration: Add to a random different group
