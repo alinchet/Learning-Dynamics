@@ -1,5 +1,5 @@
 from enum import Enum
-from config import b, c
+from src.config import b, c
 
 class Strategy(Enum):
     ALTRUIST = 0,

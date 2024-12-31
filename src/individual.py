@@ -1,5 +1,5 @@
-from constants import Strategy
-from config import w
+from src.constants import Strategy
+from src.config import w
 import copy
 
 
