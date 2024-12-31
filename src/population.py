@@ -1,6 +1,6 @@
-from individual import Individual
-from constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from config import n, q, lambda_mig
+from src.individual import Individual
+from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.config import n, q, lambda_mig
 import random
 import copy
 
