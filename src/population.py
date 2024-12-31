@@ -292,3 +292,7 @@ class Population:
             self.conflict_groups()
             self.split_groups()
             self.calculate_fitness()
+    
+    # --- String Representation ----
+    def __str__(self):
+        return f"Population with {self.num_groups} groups and {self.num_individuals} individuals per group."

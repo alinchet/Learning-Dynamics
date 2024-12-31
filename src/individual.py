@@ -107,3 +107,7 @@ class Individual:
             payoff=copy.deepcopy(self.payoff, memo),
             fitness=copy.deepcopy(self.fitness, memo)
         )
+    
+    # --- String Representation ---
+    def __repr__(self):
+        return f"Individual(strategy={self.strategy}, payoff={self.payoff}, fitness={self.fitness})"
