@@ -125,6 +125,17 @@ class Individual:
             fitness=copy.deepcopy(self.fitness, memo),
             id=copy.deepcopy(self.id, memo)  # Preserve ID in deep copy
         )
+    
+    # --- Comparison Methods ---
+    def __eq__(self, other):
+        """Check equality based on the unique ID."""
+        if isinstance(other, Individual):
+            return self.id == other.id
+        return False
+
+    def __hash__(self):
+        """Ensure hash consistency with equality."""
+        return hash(self.id)
 
     # --- String Representation ---
     def __repr__(self):
