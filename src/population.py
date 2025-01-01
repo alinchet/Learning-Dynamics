@@ -1,6 +1,6 @@
 from src.individual import Individual
 from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config import n, q, lambda_mig
+from src.config import n, q, lambda_mig, alpha
 import random
 import copy
 
@@ -83,12 +83,9 @@ class Population:
 
     # --- GAME PLAY LOGIC ---
 
-    def pair_individuals(self, alpha: float = 0.5) -> tuple[list[tuple[Individual, Individual]], Individual | None]:
+    def pair_individuals(self) -> tuple[list[tuple[Individual, Individual]], Individual | None]:
         """
         Pairs individuals across groups for interactions, based on probability alpha.
-
-        Args:
-            alpha (float): Probability of pairing with an in-group member.
 
         Returns:
             tuple: 
@@ -126,14 +123,11 @@ class Population:
 
         return pairs, None
 
-    def play_game(self, alpha: float = 0.5):
+    def play_game(self):
         """
         Simulate interactions between paired individuals.
-
-        Args:
-            alpha (float): Probability of pairing with an in-group member.
         """
-        pairs, _ = self.pair_individuals(alpha)
+        pairs, _ = self.pair_individuals()
 
         # Process each pair
         for individual_1, individual_2 in pairs:
