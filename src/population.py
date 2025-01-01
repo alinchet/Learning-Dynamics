@@ -300,4 +300,9 @@ class Population:
     
     # --- String Representation ----
     def __str__(self):
-        return f"Population with {self.num_groups} groups and {self.num_individuals} individuals per group."
+        to_return = ""
+        for i, group in enumerate(self.groups):
+            to_return += f"Group {i}:\n"
+            for individual in group:
+                to_return += f"\t{individual}\n"
+        return to_return
