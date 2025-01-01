@@ -1,11 +1,12 @@
 from src.constants import Strategy
 from src.config import w
 import copy
+import uuid
 
 
 class Individual:
     """
-    Represents an individual with a strategy, payoff, and fitness.
+    Represents an individual with a strategy, payoff, fitness, and unique ID.
     """
 
     def __init__(
@@ -13,18 +14,21 @@ class Individual:
         strategy: Strategy = Strategy.EGOIST,
         payoff: float = 0.0,
         fitness: float = 0.0,
+        id: str = None
     ):
         """
-        Initialize an Individual with a strategy, payoff, and fitness.
+        Initialize an Individual with a strategy, payoff, fitness, and ID.
 
         Args:
             strategy (Strategy): The individual's strategy.
             payoff (float): Initial payoff value (default 0.0).
             fitness (float): Initial fitness value (default 0.0).
+            id (str): Unique identifier for the individual (optional).
         """
         self.strategy = strategy
         self.payoff = payoff
         self.fitness = fitness
+        self.id = id if id else str(uuid.uuid4())
 
     # --- Properties ---
     @property
@@ -63,6 +67,18 @@ class Individual:
             raise TypeError("Fitness must be a number (float or int).")
         self._fitness = float(fitness)
 
+    @property
+    def id(self) -> str:
+        """Get the ID of the individual."""
+        return self._id
+
+    @id.setter
+    def id(self, id: str):
+        """Set the ID, ensuring it is a valid string."""
+        if not isinstance(id, str):
+            raise TypeError("ID must be a string.")
+        self._id = id
+
     # --- Methods ---
     def calculate_payoff(self, other: 'Individual', payoff_matrix: list[list[float]]):
         """
@@ -95,7 +111,8 @@ class Individual:
         return Individual(
             strategy=self.strategy,
             payoff=self.payoff,
-            fitness=self.fitness
+            fitness=self.fitness,
+            id=self.id  # Preserve ID in shallow copy
         )
 
     def __deepcopy__(self, memo):
@@ -105,9 +122,11 @@ class Individual:
         return Individual(
             strategy=copy.deepcopy(self.strategy, memo),
             payoff=copy.deepcopy(self.payoff, memo),
-            fitness=copy.deepcopy(self.fitness, memo)
+            fitness=copy.deepcopy(self.fitness, memo),
+            id=copy.deepcopy(self.id, memo)  # Preserve ID in deep copy
         )
-    
+
     # --- String Representation ---
     def __repr__(self):
-        return f"Individual(strategy={self.strategy}, payoff={self.payoff}, fitness={self.fitness})"
+        return (f"Individual(id={self.id}, strategy={self.strategy}, "
+                f"payoff={self.payoff}, fitness={self.fitness})")
