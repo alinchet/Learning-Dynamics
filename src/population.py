@@ -222,7 +222,7 @@ class Population:
             logging.warning("All individuals have zero fitness. Selecting randomly.")
             group_index = random.randint(0, len(self.groups) - 1)
             individual = random.choice(self.groups[group_index])
-            return copy.copy(individual), group_index
+            return copy.deepcopy(individual), group_index
 
         # Build lists for random.choices
         individuals = [ind for group in self.groups for ind in group]
@@ -240,7 +240,7 @@ class Population:
             f"Selected individual {selected_individual} from group {selected_group_index} "
             "for duplication."
         )
-        return copy.copy(selected_individual), selected_group_index
+        return copy.deepcopy(selected_individual), selected_group_index
 
     def reproduce(self):
         """
@@ -306,7 +306,7 @@ class Population:
                 winner, loser = (group_1, group_2) if random.random() < 0.5 else (group_2, group_1)
 
             # Replace the losing group with a (copied) version of the winning group
-            new_group = [copy.copy(ind) for ind in winner]
+            new_group = [copy.deepcopy(ind) for ind in winner]
             loser_index = self.groups.index(loser)
             self.groups[loser_index] = new_group
             logging.info("Conflict resolved. Winner replaces loser.")
