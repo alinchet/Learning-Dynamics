@@ -101,12 +101,37 @@ class Population:
             list[Individual]: Flattened list of all individuals.
         """
         return [individual for group in self.groups for individual in group]
+    
+    def random_out_group_member(self, exclude_group=None) -> Individual:
+        """
+        Selects a random individual from an out-group.
+
+        Args:
+            exclude_group (list[Individual]): Group to exclude (in-group).
+
+        Returns:
+            Individual: A random individual from an out-group.
+        """
+        out_group = [ind for group in self.groups if group != exclude_group for ind in group]
+        return random.choice(out_group)
+    
+    def random_in_group_member(self, individual, group_index: int) -> Individual:
+        """
+        Selects a random individual from a specified in-group.
+
+        Args:
+            group_index (int): Index of the group to select from.
+
+        Returns:
+            Individual: A random individual from the specified in-group.
+        """
+        return random.choice([ind for ind in self.groups[group_index] if ind != individual])
 
     # --- GAME PLAY LOGIC ---
 
-    def get_random_partner(self, individual) -> Individual:
+    def get_random_partner(self, individual: Individual) -> Individual:
         """
-        Get a random partner for an individual.
+        Get a random partner for an individual, either from the same group or a different one.
 
         Args:
             individual (Individual): The individual for which to find a partner.
@@ -114,10 +139,14 @@ class Population:
         Returns:
             Individual: A random partner for the individual.
         """
-        individuals = self.get_flattened_population()
-        individuals.remove(individual)
-        partner = random.choice(individuals)
-        logging.debug(f"Selected random partner for individual {individual}.")
+        group_idx = self.get_group(individual)  # Find the group index of the individual
+        
+        if random.random() < alpha:
+            # Randomly select an individual from the same group
+            partner = self.random_in_group_member(individual, group_idx)
+        else:
+            # Randomly select an individual from a different group
+            partner = self.random_out_group_member(exclude_group=self.groups[group_idx])
         return partner
 
     def play_game(self):
@@ -144,19 +173,6 @@ class Population:
         for group in self.groups:
             for individual in group:
                 individual.calculate_fitness()
-    
-    def random_out_group_member(self, exclude_group=None) -> Individual:
-        """
-        Selects a random individual from an out-group.
-
-        Args:
-            exclude_group (list[Individual]): Group to exclude (in-group).
-
-        Returns:
-            Individual: A random individual from an out-group.
-        """
-        out_group = [ind for group in self.groups if group != exclude_group for ind in group]
-        return random.choice(out_group)
 
     # --- REPRODUCTION ---
 
