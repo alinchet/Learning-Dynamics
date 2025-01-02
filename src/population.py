@@ -377,6 +377,15 @@ class Population:
                     group.pop(random.randint(0, len(group) - 1))
                     logging.info(f"Removed an individual from oversized group {i}.")
 
+    def reset_payoffs_and_fitness(self):
+        """
+        Reset the payoff and fitness values for all individuals in the population.
+        """
+        for group in self.groups:
+            for individual in group:
+                individual.payoff = 0.0
+                individual.fitness = 0.0
+    
     # --- SIMULATION ---
 
     def run_simulation(self):
@@ -397,7 +406,7 @@ class Population:
             self.conflict_groups()
             self.split_groups()
             self.calculate_fitness()
-            # TODO ? reset all payoff and fitness values to 0 after each generation
+            self.reset_payoffs_and_fitness() # TODO check if necessary
 
         logging.info("Simulation complete. Population is homogeneous.")
 
