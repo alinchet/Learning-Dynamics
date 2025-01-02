@@ -1,86 +1,378 @@
-from constants import *
-from config import *
+import logging
 import random
+import copy
+
+from src.individual import Individual
+from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.config import n, q, lambda_mig, alpha
+
+# --- Logging Setup ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class Population:
-    """ Class to represent a population of groups """
+    """
+    Class to represent a population of groups.
 
-    def __init__(self, num_groups, num_individuals, mutant_strategy=Strategy.ALTRUIST):
+    This class manages:
+      - Initialization of groups (mostly egoists, plus one mutant).
+      - Game-playing among individuals (pairwise interactions).
+      - Fitness calculation based on accumulated payoff.
+      - Fitness-proportional reproduction (with possible migration).
+      - Conflicts between groups.
+      - Group splitting or elimination of individuals when groups exceed max size.
+    """
+
+    # --- INITIALIZATION ---
+
+    def __init__(self,
+                 num_groups: int = 10,
+                 num_individuals: int = 10,
+                 mutant_strategy: Strategy = Strategy.ALTRUIST):
+        """
+        Initialize a population with groups of individuals.
+
+        Args:
+            num_groups (int): Number of groups.
+            num_individuals (int): Number of individuals per group.
+            mutant_strategy (Strategy): Strategy for the mutant individual.
+        """
+        logging.info(
+            f"Initializing population with {num_groups} groups, "
+            f"{num_individuals} individuals each."
+        )
         self.num_groups = num_groups
         self.num_individuals = num_individuals
         self.groups = self._initialize_population(mutant_strategy)
 
-    def _initialize_population(self, mutant_strategy):
+    def _initialize_population(self, mutant_strategy: Strategy) -> list[list[Individual]]:
         """
-        Initialize m groups each with n individuals, where all individuals
-        are egoists except for a mutant altruist or parochialist.
+        Create groups of individuals (egoists by default), introducing one mutant
+        with a given strategy in the first group.
+
+        Args:
+            mutant_strategy (Strategy): Strategy for the mutant individual.
+
+        Returns:
+            list[list[Individual]]: A list of groups, each a list of Individuals.
         """
-        groups = [[Strategy.EGOIST] * self.num_individuals for _ in range(self.num_groups)]
-        groups[0][0] = mutant_strategy  # Introduce a mutant in group 1
+        logging.info(
+            f"Creating groups of egoists with a single mutant of strategy "
+            f"{mutant_strategy}."
+        )
+
+        # Create groups with egoist individuals by default
+        groups = [[Individual() for _ in range(self.num_individuals)]
+                  for _ in range(self.num_groups)]
+
+        # Introduce a mutant in the first group
+        groups[0][0].strategy = mutant_strategy
+
         return groups
 
-    def calculate_payoff(self, individual_1, individual_2):
-        """
-        Calculate payoffs for individuals based on interactions.
-        """
-        payoffs = []
-        ... #TODO: Implement payoff calculation
-        return payoffs
+    # --- POPULATION ANALYSIS ---
 
-    def calculate_fitness(self, payoffs):
+    def is_homogeneous(self) -> bool:
         """
-        Calculate fitness for each group based on payoffs.
-        f_i = 1 - w + w * g_i, where g_i is the group's payoff.
+        Check if the population is homogeneous, i.e., 
+        consists entirely of individuals with the same strategy.
+
+        Returns:
+            bool: True if the population is homogeneous, False otherwise.
         """
-        fitness = []
-        for payoff in payoffs:
-            fitness.append(1 - w + w * payoff)
-        return fitness
+        first_strategy = self.groups[0][0].strategy
+        homogeneous = all(
+            individual.strategy == first_strategy
+            for group in self.groups
+            for individual in group
+        )
+        logging.info(f"Population homogeneous: {homogeneous}")
+        return homogeneous
 
-    def reproduce(self, fitness):
-        ... #TODO: Implement reproduction
+    def get_group(self, individual: Individual) -> int | None:
+        """
+        Get the group index to which an individual belongs.
 
-    def resolve_conflicts(self):
-        ... #TODO: Implement conflict resolution
+        Args:
+            individual (Individual): The individual to locate.
+
+        Returns:
+            int | None: Index of the group or None if the individual is not found.
+        """
+        for index, group in enumerate(self.groups):
+            if individual in group:
+                return index
+        return None
+
+    def are_in_same_group(self, individual_1: Individual, individual_2: Individual) -> bool:
+        """
+        Check if two individuals belong to the same group.
+
+        Args:
+            individual_1 (Individual): First individual.
+            individual_2 (Individual): Second individual.
+
+        Returns:
+            bool: True if both individuals are in the same group, False otherwise.
+        """
+        same_group = self.get_group(individual_1) == self.get_group(individual_2)
+        logging.debug(f"Individuals in same group: {same_group}")
+        return same_group
+
+    def get_flattened_population(self) -> list[Individual]:
+        """
+        Get a flattened list of all individuals in the population.
+
+        Returns:
+            list[Individual]: Flattened list of all individuals.
+        """
+        return [individual for group in self.groups for individual in group]
+
+    # --- PARTNER SELECTION ---
+
+    def random_out_group_member(self, exclude_group: list[Individual]) -> Individual:
+        """
+        Select a random individual from an out-group.
+
+        Args:
+            exclude_group (list[Individual]): The group to exclude.
+
+        Returns:
+            Individual: A random individual from any group except exclude_group.
+        """
+        out_group = [ind for group in self.groups if group != exclude_group for ind in group]
+        return random.choice(out_group)
+
+    def random_in_group_member(self, individual: Individual, group_index: int) -> Individual:
+        """
+        Select a random individual from the same group as `individual`, excluding that individual.
+
+        Args:
+            individual (Individual): The individual we are finding a partner for.
+            group_index (int): The index of the group to select from.
+
+        Returns:
+            Individual: A random individual from the specified in-group.
+        """
+        in_group = [ind for ind in self.groups[group_index] if ind != individual]
+        return random.choice(in_group)
+
+    def get_random_partner(self, individual: Individual) -> Individual:
+        """
+        Get a random partner for an individual, either from the same group or a different one
+        based on the probability alpha.
+
+        Args:
+            individual (Individual): The individual for which to find a partner.
+
+        Returns:
+            Individual: A random partner for the individual.
+        """
+        group_idx = self.get_group(individual)
+        if random.random() < alpha:
+            # Randomly select an individual from the same group
+            return self.random_in_group_member(individual, group_idx)
+        else:
+            # Randomly select an individual from a different group
+            return self.random_out_group_member(self.groups[group_idx])
+
+    # --- GAME PLAY & PAYOFFS ---
+
+    def play_game(self):
+        """
+        Simulate interactions (games) between individuals and their randomly selected partners.
+        Each pair calculates payoffs based on whether they are in the same group or different groups.
+        """
+        logging.info("Playing game between individuals.")
+        for group in self.groups:
+            for individual in group:
+                partner = self.get_random_partner(individual)
+                # Choose the payoff matrix based on in-group vs out-group
+                matrix = A_IN_MATRIX if self.are_in_same_group(individual, partner) else A_OUT_MATRIX
+
+                # Calculate payoffs for both individuals
+                individual.calculate_payoff(partner, matrix)
+                partner.calculate_payoff(individual, matrix)
+
+    def calculate_fitness(self):
+        """
+        Calculate and update fitness for all individuals in the population,
+        typically after payoffs are calculated.
+        """
+        logging.info("Calculating fitness for all individuals.")
+        for group in self.groups:
+            for individual in group:
+                individual.calculate_fitness()
+
+    # --- REPRODUCTION ---
+
+    def select_individual_for_duplication(self) -> tuple[Individual, int]:
+        """
+        Select an individual for duplication based on fitness-proportional probabilities.
+        Returns the selected individual (as a copy) and the index of the group 
+        it was originally selected from.
+
+        Returns:
+            (Individual, int): A copy of the selected individual, and the group index.
+        """
+        total_fitness = sum(ind.fitness for group in self.groups for ind in group)
+
+        # If all individuals have zero fitness, select randomly
+        if total_fitness == 0:
+            logging.warning("All individuals have zero fitness. Selecting randomly.")
+            group_index = random.randint(0, len(self.groups) - 1)
+            individual = random.choice(self.groups[group_index])
+            return copy.copy(individual), group_index
+
+        # Build lists for random.choices
+        individuals = [ind for group in self.groups for ind in group]
+        group_indices = []
+        probabilities = []
+        for i, group in enumerate(self.groups):
+            for ind in group:
+                group_indices.append(i)
+                probabilities.append(ind.fitness / total_fitness)
+
+        # Select an individual based on fitness-weighted probabilities
+        selected_individual = random.choices(individuals, weights=probabilities, k=1)[0]
+        selected_group_index = group_indices[individuals.index(selected_individual)]
+        logging.info(
+            f"Selected individual {selected_individual} from group {selected_group_index} "
+            "for duplication."
+        )
+        return copy.copy(selected_individual), selected_group_index
+
+    def reproduce(self):
+        """
+        Simulate reproduction based on fitness-proportional selection.
+        With probability lambda_mig, the new individual migrates to a different group.
+        Otherwise, it stays in its parent's group.
+        """
+        new_individual, parent_group_index = self.select_individual_for_duplication()
+
+        if random.random() < lambda_mig:
+            # Migration: Add to a random different group
+            target_group_index = random.choice([
+                i for i in range(len(self.groups)) 
+                if i != parent_group_index
+            ])
+            self.groups[target_group_index].append(new_individual)
+            logging.info(f"New individual migrated to group {target_group_index}.")
+        else:
+            # Stay in the same group
+            self.groups[parent_group_index].append(new_individual)
+            logging.info(f"New individual added to group {parent_group_index}.")
+
+    # --- GROUP CONFLICT ---
+
+    def pair_groups(self) -> list[tuple[list[Individual], list[Individual]]]:
+        """
+        Randomly pairs groups for conflict. If the number of groups is odd,
+        duplicate or remove a random group to make it even.
+
+        Returns:
+            list[tuple[list[Individual], list[Individual]]]: A list of paired groups.
+        """
+        indices = list(range(len(self.groups)))
+        # If the number of groups is odd, duplicate or remove a random group to ensure an even count
+        if len(indices) % 2 == 1:
+            if random.random() < 0.5:
+                indices.append(random.choice(indices))  # Duplicate a random group index
+            else:
+                indices.remove(random.choice(indices))  # Remove a random group index
+
+        random.shuffle(indices)
+        return [
+            (self.groups[indices[i]], self.groups[indices[i + 1]])
+            for i in range(0, len(indices), 2)
+        ]
+
+    def conflict_groups(self):
+        """
+        Simulate conflicts between paired groups.
+        The group with higher total fitness wins and replaces the loser group.
+        In case of a tie, a random winner is chosen.
+        """
+        logging.info("Simulating conflicts between groups.")
+        for group_1, group_2 in self.pair_groups():
+            fitness_1 = sum(ind.fitness for ind in group_1)
+            fitness_2 = sum(ind.fitness for ind in group_2)
+
+            if fitness_1 > fitness_2:
+                winner, loser = group_1, group_2
+            elif fitness_2 > fitness_1:
+                winner, loser = group_2, group_1
+            else:  # Tie
+                winner, loser = (group_1, group_2) if random.random() < 0.5 else (group_2, group_1)
+
+            # Replace the losing group with a (copied) version of the winning group
+            new_group = [copy.copy(ind) for ind in winner]
+            loser_index = self.groups.index(loser)
+            self.groups[loser_index] = new_group
+            logging.info("Conflict resolved. Winner replaces loser.")
+
+    # --- GROUP SPLITTING ---
+
+    def split_group(self, index: int):
+        """
+        Split the group at the given index into two smaller groups of equal (or nearly equal) size.
+
+        Args:
+            index (int): The index of the group to split.
+        """
+        group = self.groups[index]
+        half = len(group) // 2
+        self.groups[index] = group[:half]
+        self.groups.append(group[half:])
+        logging.info(f"Group {index} split into two.")
 
     def split_groups(self):
-        """ Split groups if they exceed the maximum size """
-        for i in range(len(self.groups)):
-            if len(self.groups[i]) > n:
+        """
+        If a group exceeds the maximum size n, either split it (with probability q)
+        or eliminate a random individual (with probability 1 - q).
+        """
+        for i, group in enumerate(self.groups):
+            # Check if the group size exceeds the threshold
+            if len(group) > n:
                 if random.random() < q:
-                    # Split the group
-                    self._split_groups(i)
+                    self.split_group(i)
                 else:
                     # Eliminate a random individual
-                    self._eliminate_individual(i)
+                    group.pop(random.randint(0, len(group) - 1))
+                    logging.info(f"Removed an individual from oversized group {i}.")
 
-    def _split_groups(self, group_index):
-        """
-        Split the group at group_index into two daughter groups.
-        """
-        parent_group = self.groups[group_index]
-        daughter_group_1, daughter_group_2 = [], []
+    # --- SIMULATION ---
 
-        while parent_group:
-            individual = parent_group.pop(random.randint(0, len(parent_group) - 1))
-            if random.random() < 0.5:
-                daughter_group_1.append(individual)
-            else:
-                daughter_group_2.append(individual)
-
-        # Replace the parent group and randomly replace another group
-        self.groups[group_index] = daughter_group_1
-        random_group_idx = random.randint(0, len(self.groups) - 1)
-        self.groups[random_group_idx] = daughter_group_2
-
-    def _eliminate_individual(self, group_index):
-        """
-        Eliminate a random individual from the group at group_index.
-        """
-        random_individual_idx = random.randint(0, len(self.groups[group_index]) - 1)
-        self.groups[group_index].pop(random_individual_idx)
-    
     def run_simulation(self):
-        ... #TODO: Implement simulation logic
+        """
+        Execute the full simulation loop until the population becomes homogeneous.
+        The loop includes:
+          1. Game play between individuals
+          2. Fitness calculation
+          3. Reproduction (with possible migration)
+          4. Group conflict
+          5. Group splitting (if needed)
+        """
+        logging.info("Starting simulation.")
+        while not self.is_homogeneous():
+            self.play_game()
+            self.calculate_fitness()
+            self.reproduce()
+            self.conflict_groups()
+            self.split_groups()
+            self.calculate_fitness()
 
+        logging.info("Simulation complete. Population is homogeneous.")
+
+    # --- STRING REPRESENTATION ---
+
+    def __str__(self):
+        """
+        Show a summary of the groups and their members.
+        """
+        to_return = ""
+        for i, group in enumerate(self.groups):
+            to_return += f"Group {i}:\n"
+            for individual in group:
+                to_return += f"  {individual}\n"
+        return to_return
