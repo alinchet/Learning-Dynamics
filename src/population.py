@@ -4,11 +4,14 @@ import copy
 
 from src.individual import Individual
 from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config import n, q, lambda_mig, alpha
+from src.config import n, q, z, lambda_mig, alpha, kappa
 
 # --- Logging Setup ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+logging.basicConfig(
+    filename='logs/population.log',  # Log file name
+    level=logging.INFO,          # Log level (you can adjust to DEBUG, ERROR, etc.)
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
+)
 
 class Population:
     """
@@ -273,19 +276,33 @@ class Population:
         Returns:
             list[tuple[list[Individual], list[Individual]]]: A list of paired groups.
         """
-        indices = list(range(len(self.groups)))
-        # If the number of groups is odd, duplicate or remove a random group to ensure an even count
-        if len(indices) % 2 == 1:
-            if random.random() < 0.5:
-                indices.append(random.choice(indices))  # Duplicate a random group index
-            else:
-                indices.remove(random.choice(indices))  # Remove a random group index
+        num_groups_involved = round(len(self.groups) * kappa)
+        groups_involved = [group for group in random.sample(self.groups, num_groups_involved)]
+        groups_not_involved = [group for group in self.groups if group not in groups_involved]
 
-        random.shuffle(indices)
-        return [
-            (self.groups[indices[i]], self.groups[indices[i + 1]])
-            for i in range(0, len(indices), 2)
-        ]
+        if (num_groups_involved % 2) != 0:
+            # Duplicate or remove a random group to make the number even
+
+            if num_groups_involved == len(self.groups):
+                # If all groups are involved, remove a random group
+                random_group = random.choice(groups_involved)
+                groups_involved.remove(random_group)
+                logging.info("Removed a random group for conflict.")
+            else:
+                if random.random() < 0.5:
+                    # Add a group to groups_involved
+                    random_group = random.choice(groups_not_involved)
+                    groups_involved.append(random_group)
+                    groups_not_involved.remove(random_group)
+                    logging.info("Duplicated a random group for conflict.")
+                else:
+                    # Remove a random group
+                    groups_involved.pop(random.randint(0, len(groups_involved) - 1))
+                    logging.info("Removed a random group for conflict.")
+        
+        # Pair the groups
+        random.shuffle(groups_involved)
+        return [(groups_involved[i], groups_involved[i + 1]) for i in range(0, len(groups_involved), 2)]
 
     def conflict_groups(self):
         """
@@ -295,18 +312,21 @@ class Population:
         """
         logging.info("Simulating conflicts between groups.")
         for group_1, group_2 in self.pair_groups():
-            fitness_1 = sum(ind.fitness for ind in group_1)
-            fitness_2 = sum(ind.fitness for ind in group_2)
-
-            if fitness_1 > fitness_2:
+            payoff_1 = sum(ind.payoff for ind in group_1)
+            payoff_2 = sum(ind.payoff for ind in group_2)
+            
+            if payoff_1 == payoff_2:
+                win_probability_1 = 0.5
+            else:
+                win_probability_1 = payoff_1**(1 / z) / (payoff_1**(1 / z) + payoff_2**(1 / z))
+            
+            if random.random() < win_probability_1:
                 winner, loser = group_1, group_2
-            elif fitness_2 > fitness_1:
+            else:
                 winner, loser = group_2, group_1
-            else:  # Tie
-                winner, loser = (group_1, group_2) if random.random() < 0.5 else (group_2, group_1)
 
             # Replace the losing group with a (copied) version of the winning group
-            new_group = [copy.deepcopy(ind) for ind in winner]
+            new_group = copy.deepcopy(winner)
             loser_index = self.groups.index(loser)
             self.groups[loser_index] = new_group
             logging.info("Conflict resolved. Winner replaces loser.")
@@ -321,10 +341,24 @@ class Population:
             index (int): The index of the group to split.
         """
         group = self.groups[index]
-        half = len(group) // 2
-        self.groups[index] = group[:half]
-        self.groups.append(group[half:])
-        logging.info(f"Group {index} split into two.")
+
+        new_group_1 = []
+        new_group_2 = []
+
+        # Randomly assign individuals to the new groups
+        for individual in group:
+            if random.random() < 0.5:
+                new_group_1.append(individual)
+            else:
+                new_group_2.append(individual)
+
+        if len(new_group_1) == 0 or len(new_group_2) == 0:
+            # If one group is empty, merge them back together
+            logging.info("Group splitting failed. Merging groups back together.")
+            self.split_group(index)
+        
+        self.groups[index] = new_group_1
+        self.groups[random.sample] = new_group_2
 
     def split_groups(self):
         """
@@ -361,6 +395,7 @@ class Population:
             self.conflict_groups()
             self.split_groups()
             self.calculate_fitness()
+            # TODO ? reset all payoff and fitness values to 0 after each generation
 
         logging.info("Simulation complete. Population is homogeneous.")
 
