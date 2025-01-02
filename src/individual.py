@@ -99,7 +99,7 @@ class Individual:
         try:
             logging.info("Calculating payoff for Individual ID=%s against Individual ID=%s", 
                          self.id, other.id)
-            self.payoff = payoff_matrix[self.strategy.value][other.strategy.value]
+            self.payoff += payoff_matrix[self.strategy.value][other.strategy.value]
             logging.info("Payoff updated to %.2f for Individual ID=%s", self.payoff, self.id)
         except (IndexError, KeyError):
             raise ValueError("Invalid strategy combination in payoff matrix.")
