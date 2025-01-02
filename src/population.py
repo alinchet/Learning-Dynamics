@@ -1,8 +1,13 @@
 from src.individual import Individual
 from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
 from src.config import n, q, lambda_mig, alpha
+import logging
 import random
 import copy
+
+# --- Logging Setup ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class Population:
     """Class to represent a population of groups."""
@@ -18,6 +23,7 @@ class Population:
             num_individuals (int): Number of individuals per group.
             mutant_strategy (Strategy): Strategy for the mutant individual.
         """
+        logging.info(f"Initializing population with {num_groups} groups, {num_individuals} individuals each.")
         self.num_groups = num_groups
         self.num_individuals = num_individuals
         self.groups = self._initialize_population(mutant_strategy)
@@ -32,6 +38,8 @@ class Population:
         Returns:
             list[list[Individual]]: Groups of individuals.
         """
+        logging.info(f"Creating groups of egoists with a single mutant of strategy {mutant_strategy}.")
+
         # Create groups with egoist individuals by default
         groups = [[Individual() for _ in range(self.num_individuals)] for _ in range(self.num_groups)]
         
@@ -51,7 +59,9 @@ class Population:
             bool: True if the population is homogeneous, False otherwise.
         """
         strategy = self.groups[0][0].strategy
-        return all(individual.strategy == strategy for group in self.groups for individual in group)
+        homogeneous = all(individual.strategy == strategy for group in self.groups for individual in group)
+        logging.info(f"Population homogeneous: {homogeneous}")
+        return homogeneous
 
     def get_group(self, individual: Individual) -> int | None:
         """
@@ -79,7 +89,9 @@ class Population:
         Returns:
             bool: True if both individuals are in the same group, False otherwise.
         """
-        return self.get_group(individual_1) == self.get_group(individual_2)
+        same_group = self.get_group(individual_1) == self.get_group(individual_2)
+        logging.debug(f"Individuals in same group: {same_group}")
+        return same_group
     
     def get_flattened_population(self) -> list[Individual]:
         """
@@ -104,13 +116,15 @@ class Population:
         """
         individuals = self.get_flattened_population()
         individuals.remove(individual)
-        return random.choice(individuals)
+        partner = random.choice(individuals)
+        logging.debug(f"Selected random partner for individual {individual}.")
+        return partner
 
     def play_game(self):
         """
         Simulate interactions between paired individuals.
         """
-
+        logging.info("Playing game between individuals.")
         for group in self.groups:
             for individual in group:
                 partner = self.get_random_partner(individual)
@@ -126,6 +140,7 @@ class Population:
         """
         Calculate and update fitness for all individuals in the population.
         """
+        logging.info("Calculating fitness for all individuals.")
         for group in self.groups:
             for individual in group:
                 individual.calculate_fitness()
@@ -158,6 +173,7 @@ class Population:
 
         # Handle edge case where all individuals have zero fitness
         if total_fitness == 0:
+            logging.warning("All individuals have zero fitness. Selecting randomly.")
             # Select randomly if no fitness differentiation exists
             group_index = random.randint(0, len(self.groups) - 1)
             individual = random.choice(self.groups[group_index])
@@ -174,6 +190,7 @@ class Population:
         # Find the group index of the selected individual
         selected_group_index = group_indices[individuals.index(selected_individual)]
 
+        logging.info(f"Selected individual {selected_individual} from group {selected_group_index} for duplication.")
         return copy.copy(selected_individual), selected_group_index
 
     def reproduce(self):
@@ -187,9 +204,11 @@ class Population:
                 [i for i in range(len(self.groups)) if i != parent_group_index]
             )
             self.groups[target_group_index].append(new_individual)
+            logging.info(f"New individual migrated to group {target_group_index}.")
         else:
             # Stay in the same group
             self.groups[parent_group_index].append(new_individual)
+            logging.info(f"New individual added to group {parent_group_index}.")
 
     # --- GROUP CONFLICT ---
 
@@ -218,6 +237,7 @@ class Population:
         Simulate conflicts between paired groups. 
         Winning group replaces the losing group based on fitness comparison.
         """
+        logging.info("Simulating conflicts between groups.")
         for group_1, group_2 in self.pair_groups():
             # Calculate the total payoff (fitness) of each group
             fitness_1 = sum(individual.fitness for individual in group_1)
@@ -234,6 +254,7 @@ class Population:
             # Replace the losing group with a copy of the winning group
             new_group = [copy.copy(individual) for individual in winner]
             self.groups[self.groups.index(loser)] = new_group
+            logging.info(f"Conflict resolved. Winner replaces loser.")
         
      # --- GROUP SPLITTING ---
 
@@ -249,6 +270,7 @@ class Population:
         # Split the group into two smaller groups
         self.groups[index] = group[:half]
         self.groups.append(group[half:])
+        logging.info(f"Group {index} split into two.")
 
     def split_groups(self):
         """ Split oversized groups or eliminate individuals based on group size. """
@@ -261,6 +283,7 @@ class Population:
                 else:
                     # Eliminate a random individual from the group
                     group.pop(random.randint(0, len(group) - 1))
+                    logging.info(f"Removed individual from oversized group {i}.")
 
     # --- SIMULATION ---
 
@@ -268,6 +291,7 @@ class Population:
         """
         Execute the full simulation process.
         """
+        logging.info("Starting simulation.")
         while not self.is_homogeneous():
             self.play_game()
             self.calculate_fitness()
@@ -275,6 +299,7 @@ class Population:
             self.conflict_groups()
             self.split_groups()
             self.calculate_fitness()
+        logging.info("Simulation complete. Population is homogeneous.")
     
     # --- String Representation ----
     def __str__(self):
