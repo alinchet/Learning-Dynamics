@@ -80,63 +80,47 @@ class Population:
             bool: True if both individuals are in the same group, False otherwise.
         """
         return self.get_group(individual_1) == self.get_group(individual_2)
+    
+    def get_flattened_population(self) -> list[Individual]:
+        """
+        Get a flattened list of all individuals in the population.
+
+        Returns:
+            list[Individual]: Flattened list of all individuals.
+        """
+        return [individual for group in self.groups for individual in group]
 
     # --- GAME PLAY LOGIC ---
 
-    def pair_individuals(self) -> tuple[list[tuple[Individual, Individual]], Individual | None]:
+    def get_random_partner(self, individual) -> Individual:
         """
-        Pairs individuals across groups for interactions, based on probability alpha.
+        Get a random partner for an individual.
+
+        Args:
+            individual (Individual): The individual for which to find a partner.
 
         Returns:
-            tuple: 
-                - List of pairs of individuals.
-                - Unpaired individual (if odd) or None.
+            Individual: A random partner for the individual.
         """
-        pairs = []
-        unpaired = None
-
-        # Iterate through each group to form pairs
-        for group in self.groups:
-            # Shuffle individuals within the group
-            in_group = group[:]
-            random.shuffle(in_group)
-
-            # Pair within group based on alpha probability
-            while len(in_group) > 1:
-                if random.random() < alpha:  # Pair within the same group (in-group)
-                    pairs.append((in_group.pop(), in_group.pop()))
-                else:  # Pair with out-group members
-                    pairs.append((in_group.pop(), self.random_out_group_member(group)))
-
-            # Handle any leftover individual in the group
-            if in_group:
-                if unpaired:  # Pair with a previously unpaired individual
-                    pairs.append((in_group.pop(), unpaired))
-                    unpaired = None
-                else:  # Keep unpaired for now
-                    unpaired = in_group.pop()
-
-        # Handle any final unpaired individual
-        if unpaired:
-            out_group_member = self.random_out_group_member()
-            pairs.append((unpaired, out_group_member))
-
-        return pairs, None
+        individuals = self.get_flattened_population()
+        individuals.remove(individual)
+        return random.choice(individuals)
 
     def play_game(self):
         """
         Simulate interactions between paired individuals.
         """
-        pairs, _ = self.pair_individuals()
 
-        # Process each pair
-        for individual_1, individual_2 in pairs:
-            # Determine interaction matrix based on group membership
-            matrix = A_IN_MATRIX if self.are_in_same_group(individual_1, individual_2) else A_OUT_MATRIX
+        for group in self.groups:
+            for individual in group:
+                partner = self.get_random_partner(individual)
 
-            # Calculate payoffs for both individuals
-            individual_1.calculate_payoff(individual_2, matrix)
-            individual_2.calculate_payoff(individual_1, matrix)
+                # Determine interaction matrix based on group membership
+                matrix = A_IN_MATRIX if self.are_in_same_group(individual, partner) else A_OUT_MATRIX
+
+                # Calculate payoffs for both individuals
+                individual.calculate_payoff(partner, matrix)
+                partner.calculate_payoff(individual, matrix)
 
     def calculate_fitness(self):
         """
