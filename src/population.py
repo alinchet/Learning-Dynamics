@@ -91,6 +91,29 @@ class Population:
         )
         logging.info(f"Population homogeneous: {homogeneous}")
         return homogeneous
+    
+    def get_population_distribution(self) -> dict[Strategy, int]:
+        """
+        Get the distribution of strategies in the population.
+
+        Returns:
+            dict[Strategy, int]: A dictionary with the count of each strategy.
+        """
+        distribution = {
+            Strategy.EGOIST: 0,
+            Strategy.ALTRUIST: 0,
+            Strategy.PUNISHER: 0
+        }
+        for group in self.groups:
+            for individual in group:
+                distribution[individual.strategy] += 1
+        return distribution
+
+    def get_homogeneous_strategy(self) -> Strategy:
+        """
+        Get the strategy of the homogeneous population.
+        """
+        return self.groups[0][0].strategy
 
     def get_group(self, individual: Individual) -> int | None:
         """
@@ -408,7 +431,8 @@ class Population:
             self.calculate_fitness()
             self.reset_payoffs_and_fitness() # TODO check if necessary
 
-        logging.info("Simulation complete. Population is homogeneous.")
+        logging.info(f"Simulation complete. Population is homogeneous -> {self.get_homogeneous_strategy()}.")
+        print(f"Population is homogeneous -> {self.get_homogeneous_strategy()}.")
 
     # --- STRING REPRESENTATION ---
 
