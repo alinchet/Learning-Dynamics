@@ -77,6 +77,8 @@ class Individual:
     @property
     def id(self) -> str:
         """Get the ID of the individual."""
+        if not hasattr(self, '_id'):
+            self._id = str(uuid.uuid4())  # Initialize _id if not already set
         return self._id
 
     @id.setter
