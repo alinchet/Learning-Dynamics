@@ -1,8 +1,11 @@
 from src.constants import Strategy
 from src.config import w
+import logging
 import copy
 import uuid
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Individual:
     """
@@ -29,6 +32,7 @@ class Individual:
         self.payoff = payoff
         self.fitness = fitness
         self.id = id if id else str(uuid.uuid4())
+        logging.info("Individual initialized with ID=%s", self.id)
 
     # --- Properties ---
     @property
@@ -41,6 +45,7 @@ class Individual:
         """Set the strategy, ensuring it is valid."""
         if not isinstance(strategy, Strategy):
             raise ValueError(f"Invalid strategy: {strategy}")
+        logging.info("Setting strategy to %s for Individual ID=%s", strategy, self.id)
         self._strategy = strategy
 
     @property
@@ -53,6 +58,7 @@ class Individual:
         """Set the payoff, ensuring it is a valid number."""
         if not isinstance(payoff, (float, int)):
             raise TypeError("Payoff must be a number (float or int).")
+        logging.info("Setting payoff to %.2f for Individual ID=%s", float(payoff), self.id)
         self._payoff = float(payoff)
 
     @property
@@ -65,6 +71,7 @@ class Individual:
         """Set the fitness, ensuring it is a valid number."""
         if not isinstance(fitness, (float, int)):
             raise TypeError("Fitness must be a number (float or int).")
+        logging.info("Setting fitness to %.2f for Individual ID=%s", float(fitness), self.id)
         self._fitness = float(fitness)
 
     @property
@@ -77,6 +84,7 @@ class Individual:
         """Set the ID, ensuring it is a valid string."""
         if not isinstance(id, str):
             raise TypeError("ID must be a string.")
+        logging.info("Setting ID to %s", id)
         self._id = id
 
     # --- Methods ---
@@ -89,7 +97,10 @@ class Individual:
             payoff_matrix (list[list[float]]): Payoff matrix for strategies.
         """
         try:
+            logging.info("Calculating payoff for Individual ID=%s against Individual ID=%s", 
+                         self.id, other.id)
             self.payoff = payoff_matrix[self.strategy.value][other.strategy.value]
+            logging.info("Payoff updated to %.2f for Individual ID=%s", self.payoff, self.id)
         except (IndexError, KeyError):
             raise ValueError("Invalid strategy combination in payoff matrix.")
 
@@ -100,7 +111,10 @@ class Individual:
         Returns:
             float: The calculated fitness value.
         """
+        logging.info("Calculating fitness for Individual ID=%s with payoff=%.2f", 
+                     self.id, self.payoff)
         self.fitness = 1 - w + w * self.payoff
+        logging.info("Fitness updated to %.2f for Individual ID=%s", self.fitness, self.id)
         return self.fitness
     
     # --- Copy Methods ---
@@ -108,6 +122,7 @@ class Individual:
         """
         Create a shallow copy of the individual.
         """
+        logging.info("Creating shallow copy of Individual ID=%s", self.id)
         return Individual(
             strategy=self.strategy,
             payoff=self.payoff,
@@ -119,6 +134,7 @@ class Individual:
         """
         Create a deep copy of the individual.
         """
+        logging.info("Creating deep copy of Individual ID=%s", self.id)
         return Individual(
             strategy=copy.deepcopy(self.strategy, memo),
             payoff=copy.deepcopy(self.payoff, memo),
@@ -129,9 +145,10 @@ class Individual:
     # --- Comparison Methods ---
     def __eq__(self, other):
         """Check equality based on the unique ID."""
-        if isinstance(other, Individual):
-            return self.id == other.id
-        return False
+        result = isinstance(other, Individual) and self.id == other.id
+        logging.info("Comparing Individual ID=%s to Individual ID=%s: %s", 
+                     self.id, other.id if isinstance(other, Individual) else "N/A", result)
+        return result
 
     def __hash__(self):
         """Ensure hash consistency with equality."""
