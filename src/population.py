@@ -380,10 +380,8 @@ class Population:
             logging.info("Group splitting failed. Merging groups back together.")
             self.split_group(index)
         
-        groups_without_index = [group for i, group in enumerate(self.groups) if i != index]
-
         self.groups[index] = new_group_1
-        self.groups[random.sample(groups_without_index, k=1)[0]] = new_group_2
+        self.groups[random.choice([i for i in range(len(self.groups)) if i != index])] = new_group_2
 
     def split_groups(self):
         """
