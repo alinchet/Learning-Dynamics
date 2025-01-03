@@ -17,7 +17,6 @@ if [ "$1" == "clone" ]; then
 
 elif [ "$1" == "setup" ]; then
     # Step 2: Set up a Python Environment
-
     echo "Setting up the Python environment..."
     python3 -m venv $ENV_DIR
     source $ENV_DIR/bin/activate
@@ -27,7 +26,6 @@ elif [ "$1" == "setup" ]; then
 
 elif [ "$1" == "run" ]; then
     # Step 3: Run the Simulation
-
     source $ENV_DIR/bin/activate
     echo "Running the simulation..."
     python -m src.main
@@ -41,5 +39,9 @@ elif [ "$1" == "clean" ]; then
     echo "Cleaned up temporary files."
 
 else
-    echo "Usage: ./bash.sh <clone|setup|run|clean>"
+    echo -e "Usage:
+	./bash.sh clone
+	./bash.sh setup
+	./bash.sh run
+	./bash.sh clean"
 fi
