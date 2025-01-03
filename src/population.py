@@ -2,9 +2,9 @@ import logging
 import random
 import copy
 
-from src.individual import Individual
-from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config import n, q, z, lambda_mig, alpha, kappa
+from individual import Individual
+from constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from config import n, q, z, lambda_mig, alpha, kappa
 
 # --- Logging Setup ---
 logging.basicConfig(

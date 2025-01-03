@@ -1,7 +1,7 @@
 import logging
-from src.population import Population, Strategy
+from population import Population, Strategy
 import matplotlib.pyplot as plt
-from src.config import N
+from config import N
 
 
 def run_simulation_with_bc(self, bc_values, num_simulations=100):

@@ -1,5 +1,5 @@
-from src.constants import Strategy
-from src.config import w
+from constants import Strategy
+from config import w
 import logging
 import copy
 import uuid
