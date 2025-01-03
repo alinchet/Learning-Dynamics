@@ -2,9 +2,9 @@ import logging
 import random
 import copy
 
-from individual import Individual
-from constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from config import n, q, z, lambda_mig, alpha, kappa
+from src.individual import Individual
+from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.config import n, q, z, lambda_mig, alpha, kappa
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -428,10 +428,11 @@ class Population:
             self.split_groups()
             self.calculate_fitness()
             self.reset_payoffs_and_fitness() # TODO check if necessary
-       
-        return self.get_homogeneous_strategy()
+        
         logging.info(f"Simulation complete. Population is homogeneous -> {self.get_homogeneous_strategy()}.")
         print(f"Population is homogeneous -> {self.get_homogeneous_strategy()}.")
+        return self.get_homogeneous_strategy()
+        
 
     # --- STRING REPRESENTATION ---
 

@@ -1,4 +1,4 @@
-from population import Population
+from src.population import Population
 from datetime import datetime
 
 nbr_runs = 1
@@ -11,6 +11,7 @@ def main():
         print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
         population = Population(num_groups=10, num_individuals=10)
         winner_strategy.append(population.run_simulation())
+        print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
 
 
 if __name__ == '__main__':

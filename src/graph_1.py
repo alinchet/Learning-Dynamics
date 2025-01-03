@@ -11,10 +11,7 @@ for z, color in zip(z_values, colors_value):
     G_i = [init_group_payoff] * len(payoff_differences)
     G_j = [init_group_payoff + payoff_differences[i] for i in range(len(payoff_differences))]
 
-    winning_proba = [
-        1 - (G_i[i] ** (1 / z) / (G_i[i] ** (1 / z) + G_j[i] ** (1 / z)))
-        for i in range(len(payoff_differences))
-    ]
+    winning_proba = [1 - (G_i[i] ** (1 / z) / (G_i[i] ** (1 / z) + G_j[i] ** (1 / z))) for i in range(len(payoff_differences))]
     print(f"""Result:
         -G_i : {G_i}
         -payoff_differences : {payoff_differences}
