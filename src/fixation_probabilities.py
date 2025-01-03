@@ -1,7 +1,7 @@
 import logging
 from src.population import Population, Strategy
 import matplotlib.pyplot as plt
-
+from src.config import N
 
 
 def run_simulation_with_bc(self, bc_values, num_simulations=100):
@@ -41,25 +41,39 @@ def run_simulation_with_bc(self, bc_values, num_simulations=100):
 
 
 
-def plot_fixation_probabilities(fixation_probabilities):
+import matplotlib.pyplot as plt
+
+def plot_fixation_probabilities(fixation_probabilities, n, m):
     """
-    Plot the fixation probabilities as a function of the b/c ratio.
+    Plot the fixation probabilities as a function of the b/c ratio with the neutral threshold line.
 
     Args:
         fixation_probabilities (dict): Dictionary mapping b/c values to fixation probabilities.
+        n (int): Number of individuals per group.
+        m (int): Number of groups.
     """
+    # Calculate the neutral fixation threshold
+    neutral_threshold = N
+
+    # Extract data
     bc_values = list(fixation_probabilities.keys())
     fixation_probs = list(fixation_probabilities.values())
 
+    # Plot the fixation probabilities
     plt.figure(figsize=(10, 6))
-    plt.plot(bc_values, fixation_probs, marker='o', linestyle='-', color='b')
-    plt.axhline(y=1/(10 * 10), color='r', linestyle='--', label='Neutral Threshold (1/N)')
+    plt.plot(bc_values, fixation_probs, marker='o', linestyle='-', color='b', label='Fixation Probability')
+
+    # Add the neutral threshold line
+    plt.axhline(y=neutral_threshold, color='black', linestyle='--', label=f'Neutral Threshold (1/{n * m})')
+
+    # Configure the plot
     plt.xlabel("b/c Ratio")
     plt.ylabel("Fixation Probability")
     plt.title("Fixation Probability of Altruist Mutant vs. b/c Ratio")
     plt.legend()
     plt.grid(True)
     plt.show()
+
 
 
 
