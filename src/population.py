@@ -299,7 +299,7 @@ class Population:
         Returns:
             list[tuple[list[Individual], list[Individual]]]: A list of paired groups.
         """
-        num_groups_involved = round(len(self.groups) * kappa)
+        num_groups_involved = round(len(self.groups) * kappa) #TODO check if this is correct, kappa tends to be very small (tjr 0 en gros)
         groups_involved = [group for group in random.sample(self.groups, num_groups_involved)]
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
 
@@ -428,7 +428,8 @@ class Population:
             self.split_groups()
             self.calculate_fitness()
             self.reset_payoffs_and_fitness() # TODO check if necessary
-
+       
+        return self.get_homogeneous_strategy()
         logging.info(f"Simulation complete. Population is homogeneous -> {self.get_homogeneous_strategy()}.")
         print(f"Population is homogeneous -> {self.get_homogeneous_strategy()}.")
 
