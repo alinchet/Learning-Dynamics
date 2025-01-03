@@ -1,3 +1,4 @@
-bc_ratios = [1.5+i/2 for i in range(0,8,1)]
-group_size_values = [5+i for i in range(0,16)]
-print(group_size_values)
+my_lst = [1,3,5,7]
+payoff_1 = sum(val if val%2==0 else 0 for val in my_lst)
+
+print(payoff_1)

@@ -302,6 +302,7 @@ class Population:
 
     # --- GROUP CONFLICT ---
 
+    #__________________________________________OLD VERSION__________________________________________
     def pair_groups(self) -> list[tuple[list[Individual], list[Individual]]]:
         """
         Randomly pairs groups for conflict. If the number of groups is odd,
@@ -365,9 +366,57 @@ class Population:
             self.groups[loser_index] = new_group
             logging.info("Conflict resolved. Winner replaces loser.")
 
-    def select_indvidual_for_conflict(self):
-        conflict_individuals = [ind for group in self.groups for ind in group if random.random() < kappa]
-        return conflict_individuals
+    #__________________________________________NEW VERSION__________________________________________
+    def select_conflict_groups(self):
+        """
+        This function check for all individuals and verify if they gonna conflict or not with kappa proba.
+        
+
+        Returns: 
+            conflict_individuals : list[Individual] that gonna conflict
+            groups_involved : list[Individual] corresponding groups involved in a conflict
+            groups_not_involved : list[Individual] rest of the group, they do not participate to the conflict
+        """
+
+        conflict_individuals = []
+        groups_involved = []
+        for group in self.groups:
+            for ind in group:
+                if random.random() < kappa:
+                    conflict_individuals.append(ind)
+                    groups_involved.append(group) if group not in groups_involved else groups_involved
+        groups_not_involved = [group for group in self.groups if group not in groups_involved]
+
+        return conflict_individuals,groups_involved,groups_not_involved
+    
+    def pairs_conflict_groups(self):
+        conflict_individuals,groups_involved,groups_not_involved = self.select_conflict_groups()
+
+        num_groups_involved = len(groups_involved)
+        if (num_groups_involved % 2) != 0:
+            # Duplicate or remove a random group to make the number even
+
+            if num_groups_involved == len(self.groups):
+                # If all groups are involved, only remove a random group to get even number of groups
+                random_group = random.choice(groups_involved)
+                groups_involved.remove(random_group)
+                logging.info("Removed a random group for conflict.")
+            else:
+                if random.random() < 0.5:
+                    # Add a group to groups_involved
+                    random_group = random.choice(groups_not_involved)
+                    groups_involved.append(random_group)
+                    groups_not_involved.remove(random_group)
+                    logging.info("Duplicated a random group for conflict.")
+                else:
+                    # Remove a random group
+                    groups_involved.pop(random.randint(0, len(groups_involved) - 1))
+                    logging.info("Removed a random group for conflict.")
+        
+        # Pair the groups
+        random.shuffle(groups_involved)
+        return conflict_individuals,[(groups_involved[i], groups_involved[i + 1]) for i in range(0, len(groups_involved), 2)]
+
     def conflict_groups_with_conflict_individuals(self):
         """
         Simulate conflicts between paired groups.
@@ -375,11 +424,11 @@ class Population:
         In case of a tie, a random winner is chosen.
         """
         logging.info("Simulating conflicts between groups.")
-        for group_1, group_2 in self.pair_groups():
 
-            conflict_individuals = self.select_indvidual_for_conflict()
-            payoff_1 = sum(ind.payoff for ind in group_1 if ind in conflict_individuals)
-            payoff_2 = sum(ind.payoff for ind in group_2 if ind in conflict_individuals)
+        conflict_individuals, group_pairs = self.pairs_conflict_groups()
+        for group_1, group_2 in group_pairs:
+            payoff_1 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_1 )
+            payoff_2 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_2 )
             
             if payoff_1 == payoff_2:
                 win_probability_1 = 0.5
