@@ -8,7 +8,7 @@ from src.config import n, q, z, lambda_mig, alpha, kappa
 
 # --- Logging Setup ---
 logging.basicConfig(
-    filename='logs/population.log',  # Log file name
+    filename='run_logs/population.log',  # Log file name
     level=logging.INFO,          # Log level (you can adjust to DEBUG, ERROR, etc.)
     format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
 )
