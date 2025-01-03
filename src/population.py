@@ -181,6 +181,9 @@ class Population:
             Individual: A random individual from the specified in-group.
         """
         in_group = [ind for ind in self.groups[group_index] if ind != individual]
+        if not in_group:
+            logging.warning("No in-group members found.") #TODO check what should we do? jsp ce qui cause un groupe vide
+            return None  # or raise, or handle differently
         return random.choice(in_group)
 
     def get_random_partner(self, individual: Individual) -> Individual:
@@ -197,7 +200,7 @@ class Population:
         group_idx = self.get_group(individual)
         if random.random() < alpha:
             # Randomly select an individual from the same group
-            return self.random_in_group_member(individual, group_idx)
+            return self.random_in_group_member(individual, group_idx) #TODO handle group of size 1 ?
         else:
             # Randomly select an individual from a different group
             return self.random_out_group_member(self.groups[group_idx])
@@ -288,6 +291,14 @@ class Population:
             # Stay in the same group
             self.groups[parent_group_index].append(new_individual)
             logging.info(f"New individual added to group {parent_group_index}.")
+
+    def random_in_group_member2(self, individual: Individual, group_index: int) -> Individual | None:
+        in_group = [ind for ind in self.groups[group_index] if ind != individual]
+        if not in_group:
+            logging.warning("No in-group members found.")
+            return None  # or raise, or handle differently
+        return random.choice(in_group)
+
 
     # --- GROUP CONFLICT ---
 
