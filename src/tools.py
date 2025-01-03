@@ -51,7 +51,7 @@ def reset_config():
     config.N = basic_config["N"]
 
 def main(nbr_runs,winner_strategy):
-    create_logs_folder()
+    
     now = datetime.now()
     for i in range(nbr_runs):
         print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
