@@ -2,7 +2,7 @@ from src.population import Population
 from datetime import datetime
 import os
 import json
-import config
+import src.config as config
 
 
 def check_config(file_path):

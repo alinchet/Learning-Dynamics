@@ -365,6 +365,39 @@ class Population:
             self.groups[loser_index] = new_group
             logging.info("Conflict resolved. Winner replaces loser.")
 
+    def select_indvidual_for_conflict(self):
+        conflict_individuals = [ind for group in self.groups for ind in group if random.random() < kappa]
+        return conflict_individuals
+    def conflict_groups_with_conflict_individuals(self):
+        """
+        Simulate conflicts between paired groups.
+        The group with higher total fitness wins and replaces the loser group.
+        In case of a tie, a random winner is chosen.
+        """
+        logging.info("Simulating conflicts between groups.")
+        for group_1, group_2 in self.pair_groups():
+
+            conflict_individuals = self.select_indvidual_for_conflict()
+            payoff_1 = sum(ind.payoff for ind in group_1 if ind in conflict_individuals)
+            payoff_2 = sum(ind.payoff for ind in group_2 if ind in conflict_individuals)
+            
+            if payoff_1 == payoff_2:
+                win_probability_1 = 0.5
+            else:
+                win_probability_1 = payoff_1**(1 / z) / (payoff_1**(1 / z) + payoff_2**(1 / z))
+            
+            if random.random() < win_probability_1:
+                winner, loser = group_1, group_2
+            else:
+                winner, loser = group_2, group_1
+
+            # Replace the losing group with a (copied) version of the winning group
+            new_group = copy.deepcopy(winner)
+            loser_index = self.groups.index(loser)
+            self.groups[loser_index] = new_group
+            logging.info("Conflict resolved. Winner replaces loser.")
+        
+        
     # --- GROUP SPLITTING ---
 
     def split_group(self, index: int):
@@ -435,7 +468,8 @@ class Population:
             self.play_game()
             self.calculate_fitness()
             self.reproduce()
-            self.conflict_groups()
+            #self.conflict_groups()
+            self.conflict_groups_with_conflict_individuals()
             self.split_groups()
             self.calculate_fitness()
             self.reset_payoffs_and_fitness() # TODO check if necessary

@@ -36,6 +36,7 @@ elif [ "$1" == "clean" ]; then
     # Step 5: Clean Up (optional)
     deactivate || true
     rm -rf $ENV_DIR
+    rm ./run_logs/*.*
     echo "Cleaned up temporary files."
 
 else
