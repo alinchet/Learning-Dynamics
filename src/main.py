@@ -1,8 +1,17 @@
 from src.population import Population
 from datetime import datetime
+import os
 
 nbr_runs = 1
 winner_strategy = []
+
+
+newpath = r"./run_logs/"
+if not os.path.exists(newpath):
+    os.makedirs(newpath)
+    print(f"Directory '{newpath}' created successfully.")
+else:
+    print(f"Directory '{newpath}' already exists.")
 
 now = datetime.now()
 
