@@ -75,6 +75,14 @@ class Population:
 
     # --- POPULATION ANALYSIS ---
 
+    """This section is a tool box allowing to determine multiple Population behaviors/Individual aspects as follow:
+        -is_homogeneous : Return True when the whole population got the same strategy
+        -get_population_distribution : Return strategy distribution
+        -get_group : Return the group index of an individual
+        -are_in_same_group : Return True when two individuals are in the same index (group)
+        -get_flattened_population : Return a list of the whole population
+    """
+
     def is_homogeneous(self) -> bool:
         """
         Check if the population is homogeneous, i.e., 
@@ -154,9 +162,9 @@ class Population:
         """
         return [individual for group in self.groups for individual in group]
 
-    # --- PARTNER SELECTION ---
+    # --- ITERACTION : PARTNER SELECTION ---
 
-    def random_out_group_member(self, exclude_group: list[Individual]) -> Individual:
+    def random_out_group_member(self, exclude_group_index: int) -> Individual:
         """
         Select a random individual from an out-group.
 
@@ -166,6 +174,8 @@ class Population:
         Returns:
             Individual: A random individual from any group except exclude_group.
         """
+
+        exclude_group = self.groups[exclude_group_index]
         out_group = [ind for group in self.groups if group != exclude_group for ind in group]
         return random.choice(out_group)
 
@@ -180,11 +190,13 @@ class Population:
         Returns:
             Individual: A random individual from the specified in-group.
         """
-        in_group = [ind for ind in self.groups[group_index] if ind != individual]
-        if not in_group:
+        if len(self.groups[group_index])>=2:
+            #Select an in-group interaction only if it's possible
+            in_group = [ind for ind in self.groups[group_index] if ind != individual]
+            return random.choice(in_group)
+        else:
             logging.warning("No in-group members found.") #TODO check what should we do? jsp ce qui cause un groupe vide
-            return None  # or raise, or handle differently
-        return random.choice(in_group)
+            return self.random_out_group_member(group_index)  # Returns 
 
     def get_random_partner(self, individual: Individual) -> Individual:
         """
@@ -203,9 +215,9 @@ class Population:
             return self.random_in_group_member(individual, group_idx) #TODO handle group of size 1 ?
         else:
             # Randomly select an individual from a different group
-            return self.random_out_group_member(self.groups[group_idx])
+            return self.random_out_group_member(group_idx)
 
-    # --- GAME PLAY & PAYOFFS ---
+    # --- ITERACTION : GAME PLAY & PAYOFFS ---
 
     def play_game(self):
         """
