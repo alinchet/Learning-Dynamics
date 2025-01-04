@@ -1,8 +1,12 @@
-from src.population import Population
+
+from src.constants import Strategy
+
 from datetime import datetime
 import os
 import json
 import src.config as config
+from collections import Counter
+import matplotlib.pyplot as plt
 
 
 def check_config(file_path):
@@ -28,8 +32,10 @@ def check_config(file_path):
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
 
+
 def create_logs_folder():
-    newpath = r"./run_logs/"
+    newpath = os.path.abspath("./run_logs/")
+    print(f"Attempting to create logs folder at: {newpath}")
     if not os.path.exists(newpath):
         os.makedirs(newpath)
         print(f"Directory '{newpath}' created successfully.")
@@ -51,7 +57,7 @@ def reset_config():
     config.N = basic_config["N"]
 
 def main(nbr_runs,winner_strategy):
-    
+    from src.population import Population
     now = datetime.now()
     for i in range(nbr_runs):
         print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
@@ -59,95 +65,98 @@ def main(nbr_runs,winner_strategy):
         winner_strategy.append(population.run_simulation())
         print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
 
+def save_run_output(tested_feature,tested_feature_name,probabilities):
+    with open("save.txt","a") as f:
+        sentence = f"""Result:
+            -{tested_feature_name} : {tested_feature}
+            -probabilities : {probabilities}
+        """
+        f.write(sentence)
+
+def plot_graph(selected_feature,probabilities,x_label,y_label,color):
+    plt.plot(selected_feature,probabilities,color)
+    plt.title(f"{y_label} Vs {x_label}")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+
+    plt.show()
 
 # All runs
-def run_bc_simulation(nbr_runs):
+
+def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
+    from src.population import Population
     reset_config()
     now = datetime.now()
-    winner_strategy = []
-    
-    #Config values
-    bc_ratios = [1.5+i/2 for i in range(0,8,1)]
-    for bc_ratio in bc_ratios:
+
+    # Store probabilities for each parameter value
+    probabilities = {}
+
+    for value in parameter_values:
+        print(f"Running simulations for {parameter_name}: {value}")
+        winner_strategy = []
+
         for i in range(nbr_runs):
-            #Config modifaction
-            config.c = config.b*bc_ratio
-            
-            #Run simulation
-            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
+            # Modify configuration using the provided modifier function
+            config_modifier(value)
+
+            # Run simulation
+            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run: {i}")
             population = Population(num_groups=10, num_individuals=10)
             winner_strategy.append(population.run_simulation())
-            print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
+
+        # Calculate probabilities of each strategy
+        total_runs = len(winner_strategy)
+        strategy_counts = Counter(winner_strategy)
+        probabilities[value] = {
+            strategy.name: strategy_counts.get(strategy, 0) / total_runs
+            for strategy in Strategy
+        }
+
+        print(f"Probabilities for {parameter_name} {value}: {probabilities[value]}\n")
+
+    return parameter_values, probabilities
+
+def run_bc_simulation(nbr_runs):
+    bc_ratios = [1.5 + i / 2 for i in range(0, 8, 1)]
+    return run_simulation(
+        nbr_runs,
+        "bc_ratio",
+        bc_ratios,
+        lambda bc_ratio: setattr(config, "c", config.b * bc_ratio)
+    )
 
 def run_lambda_mig_simulation(nbr_runs):
-    reset_config()
-    now = datetime.now()
-    winner_strategy = []
-    
-    #Config values
-    migration_values = [0+i/10 for i in range(0,110,10)]
-    for migration in migration_values:
-        for i in range(nbr_runs):
-            #Config modifaction
-            config.lambda_mig = migration
-            
-            #Run simulation
-            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
-            population = Population(num_groups=10, num_individuals=10)
-            winner_strategy.append(population.run_simulation())
-            print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
+    migration_values = [0 + i / 10 for i in range(0, 110, 10)]
+    return run_simulation(
+        nbr_runs,
+        "lambda_mig",
+        migration_values,
+        lambda migration: setattr(config, "lambda_mig", migration)
+    )
 
 def run_n_simulation(nbr_runs):
-    reset_config()
-    now = datetime.now()
-    winner_strategy = []
-    
-    #Config values
-    group_size_values = [5+i for i in range(0,16)]
-    for group_size in group_size_values:
-        for i in range(nbr_runs):
-            #Config modifaction
-            config.n = group_size
-            
-            #Run simulation
-            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
-            population = Population(num_groups=10, num_individuals=10)
-            winner_strategy.append(population.run_simulation())
-            print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
+    group_size_values = [5 + i for i in range(0, 16)]
+    return run_simulation(
+        nbr_runs,
+        "group_size",
+        group_size_values,
+        lambda group_size: setattr(config, "n", group_size)
+    )
 
 def run_m_simulation(nbr_runs):
-    reset_config()
-    now = datetime.now()
-    winner_strategy = []
-    
-    #Config values
-    group_number_values = [5+i for i in range(0,16)]
-    for group_number in group_number_values:
-        for i in range(nbr_runs):
-            #Config modifaction
-            config.m = group_number
-            
-            #Run simulation
-            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
-            population = Population(num_groups=10, num_individuals=10)
-            winner_strategy.append(population.run_simulation())
-            print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
+    group_number_values = [5 + i for i in range(0, 16)]
+    return run_simulation(
+        nbr_runs,
+        "group_number",
+        group_number_values,
+        lambda group_number: setattr(config, "m", group_number)
+    )
 
 def run_alpha_simulation(nbr_runs):
-    reset_config()
-    now = datetime.now()
-    winner_strategy = []
-    
-    #Config values
-    alpha_values = [0+i/10 for i in range(0,110,10)]
-    for alpha in alpha_values:
-        for i in range(nbr_runs):
-            #Config modifaction
-            config.alpha = alpha
-            
-            #Run simulation
-            print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
-            population = Population(num_groups=10, num_individuals=10)
-            winner_strategy.append(population.run_simulation())
-            print(f"Current Time: {now.strftime('%H:%M:%S')}\n")
-
+    alpha_values = [0 + i / 10 for i in range(0, 110, 10)]
+    return run_simulation(
+        nbr_runs,
+        "alpha",
+        alpha_values,
+        lambda alpha: setattr(config, "alpha", alpha)
+    )
