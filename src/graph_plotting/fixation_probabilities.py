@@ -17,9 +17,9 @@ import random
 import copy
 
 # Import from your existing files
-from src.population import Population
-from src.constants import Strategy
-from src.config import n, m, b, c, alpha, kappa, q, lambda_mig, w, z
+from src.classes.population import Population
+from src.constants.constants import Strategy
+from src.config.config import n, m, b, c, alpha, kappa, q, lambda_mig, w, z
 
 # -------------------------------------------------------------------------
 # Example function to run a batch of simulations for a single parameter
@@ -47,7 +47,7 @@ def fixation_probability_for_param(
     # For a simple approach, we directly hack the global config. 
     # Alternatively, you could pass them in a more robust manner to your Population or config.
 
-    import src.config as config
+    import src.config.config as config
     config.b = b_over_c * config.c  # e.g. c=1, then b = b_over_c
     # or if you want to keep c=1, effectively b = b_over_c
 

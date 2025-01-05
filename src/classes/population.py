@@ -2,9 +2,9 @@ import logging
 import random
 import copy
 
-from src.individual import Individual
-from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config import n, q, z, lambda_mig, alpha, kappa
+from src.classes.individual import Individual
+from src.constants.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.config.config import n, q, z, lambda_mig, alpha, kappa
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -110,7 +110,7 @@ class Pop_initializer:
         distribution = {
             Strategy.EGOIST: 0,
             Strategy.ALTRUIST: 0,
-            Strategy.PUNISHER: 0
+            Strategy.PAROCHIALIST: 0
         }
         for group in self.groups:
             for individual in group:
@@ -283,7 +283,8 @@ class Reproduction_Manager(Interaction_Manager):
             f"Selected individual {selected_individual} from group {selected_group_index} "
             "for duplication."
         )
-        return copy.deepcopy(selected_individual), selected_group_index
+        #return copy.deepcopy(selected_individual), selected_group_index
+        return selected_individual.generate_own_clone(), selected_group_index
 
     def reproduce(self):
         """
@@ -408,7 +409,7 @@ class Groups_Manager(Reproduction_Manager):
             -len(groups_not_involved) : {len(groups_not_involved)}
             -len(self.groups) : {len(self.groups)}
         """
-        print(sentence)
+        #print(sentence)
         if(len(groups_involved)+len(groups_not_involved)!=len(self.groups)):
             easy_to_read_conflict_individuals = [ind.id for ind in conflict_individuals]
 

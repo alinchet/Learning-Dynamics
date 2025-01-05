@@ -1,7 +1,5 @@
-import unittest
-from src.population import Population
-from src.individual import Individual
-from src.constants import Strategy
+from src.classes.individual import Individual
+from src.constants.constants import Strategy
 import random
 
 

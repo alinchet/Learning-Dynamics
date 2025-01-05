@@ -33,10 +33,10 @@ import time
 
 # Example: import your existing modules
 # from population import Population
-from constants import Strategy
-from config import n as DEFAULT_n, m as DEFAULT_m
-from config import alpha as DEFAULT_alpha
-from config import b, c, kappa, q, lambda_mig, z, w
+from src.constants.constants import Strategy
+from src.config.config import n as DEFAULT_n, m as DEFAULT_m
+from src.config.config import alpha as DEFAULT_alpha
+from src.config.config import b, c, kappa, q, lambda_mig, z, w
 
 ############################
 # Example stubs

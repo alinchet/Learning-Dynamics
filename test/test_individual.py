@@ -1,7 +1,7 @@
 import unittest
-from src.individual import Individual
-from src.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config import c, w
+from src.classes.individual import Individual
+from src.constants.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.config.config import c, w
 
 class TestIndividual(unittest.TestCase):
 

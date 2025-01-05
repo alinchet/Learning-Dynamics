@@ -1,5 +1,5 @@
-from src.constants import Strategy
-from src.config import w
+from src.constants.constants import Strategy
+from src.config.config import w
 import logging
 import copy
 import uuid
@@ -10,7 +10,9 @@ logging.basicConfig(
     level=logging.INFO,          # Log level (you can adjust to DEBUG, ERROR, etc.)
     format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
 )
-class Individual:
+class Basic_Individual:
+
+    individual_counter = 0 #Class level counter
     """
     Represents an individual with a strategy, payoff, fitness, and unique ID.
     """
@@ -34,7 +36,9 @@ class Individual:
         self.strategy = strategy
         self.payoff = payoff
         self.fitness = fitness
-        self.id = id if id else str(uuid.uuid4())
+        #self.id = id if id else str(uuid.uuid4())
+        self.id = f"{Basic_Individual.individual_counter}"
+        
         logging.info("Individual initialized with ID=%s", self.id)
 
     # --- Properties ---
@@ -81,7 +85,9 @@ class Individual:
     def id(self) -> str:
         """Get the ID of the individual."""
         if not hasattr(self, '_id'):
-            self._id = str(uuid.uuid4())  # Initialize _id if not already set
+            #self._id = str(uuid.uuid4())  # Initialize _id if not already set
+            self._id = f"{Basic_Individual.individual_counter}"
+            Basic_Individual.individual_counter+=1
         return self._id
 
     @id.setter
@@ -91,6 +97,8 @@ class Individual:
             raise TypeError("ID must be a string.")
         logging.info("Setting ID to %s", id)
         self._id = id
+
+class Individual(Basic_Individual):
 
     # --- Methods ---
     def calculate_payoff(self, other: 'Individual', payoff_matrix: list[list[float]]):
@@ -147,6 +155,15 @@ class Individual:
             id=copy.deepcopy(self.id, memo)  # Preserve ID in deep copy
         )
     
+    def generate_own_clone(self):
+        clone =  Individual(
+            strategy=copy.deepcopy(self.strategy),
+            payoff=copy.deepcopy(self.payoff),
+            fitness=copy.deepcopy(self.fitness)
+        )
+
+        logging.info(f"Individual {self.id} get cloned to generate the clone {clone.id}")
+        return clone
     # --- Comparison Methods ---
     def __eq__(self, other):
         """Check equality based on the unique ID."""

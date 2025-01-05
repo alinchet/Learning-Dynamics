@@ -28,7 +28,7 @@ elif [ "$1" == "run" ]; then
     # Step 3: Run the Simulation
     source $ENV_DIR/bin/activate
     echo "Running the simulation..."
-    python -m src.main
+    python -m src.main > temp.txt
     echo "Simulation completed successfully."
 
 
