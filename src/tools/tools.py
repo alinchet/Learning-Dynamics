@@ -92,7 +92,7 @@ def save_graph(selected_feature,probabilities,x_label,y_label,color):
     plt.savefig(f"{y_label}_Vs_{x_label}.png")
     plt.close()
 
-def save_graphs(selected_feature, probabilities, x_label, y_label):
+def save_graphs(selected_feature, probabilities, x_label, y_label,nbr_runs):
     """
     Plot the fixation probabilities for different strategies as separate lines.
 
@@ -114,7 +114,7 @@ def save_graphs(selected_feature, probabilities, x_label, y_label):
         plt.plot(selected_feature, strategy_probabilities, label=strategy)
     
     # Add plot title and axis labels
-    plt.title(f"{y_label} Vs {x_label}")
+    plt.title(f"{y_label} Vs {x_label} on {nbr_runs} runs")
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     

@@ -10,19 +10,19 @@ if __name__ == '__main__':
     #tools.main(nbr_runs,winner_strategy)
 
     (bc_ratio_values,probabilities),x_label,y_label = tools.run_bc_simulation(nbr_runs)
-    tools.save_graphs(bc_ratio_values,probabilities,x_label,y_label)
+    tools.save_graphs(bc_ratio_values,probabilities,x_label,y_label,nbr_runs)
     """
         (lambda_mig_values,probabilities),x_label,y_label = tools.run_lambda_mig_simulation(nbr_runs)
-        tools.save_graphs(lambda_mig_values,probabilities,x_label,y_label)
+        tools.save_graphs(lambda_mig_values,probabilities,x_label,y_label,nbr_runs)
 
         (n_values,probabilities,x_label),y_label = tools.run_n_simulation(nbr_runs)
-        tools.save_graphs(n_values,probabilities,x_label,y_label)
+        tools.save_graphs(n_values,probabilities,x_label,y_label,nbr_runs)
 
         (m_values,probabilities),x_label,y_label = tools.run_m_simulation(nbr_runs)
-        tools.save_graphs(m_values,probabilities,x_label,y_label)
+        tools.save_graphs(m_values,probabilities,x_label,y_label,nbr_runs)
 
         (alpha_values,probabilities),x_label,y_label = tools.run_alpha_simulation(nbr_runs)
-        tools.save_graphs(alpha_values,probabilities,x_label,y_label)
+        tools.save_graphs(alpha_values,probabilities,x_label,y_label,nbr_runs)
 
         """
         
