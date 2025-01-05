@@ -13,7 +13,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
 )
 
-class Population:
+class Pop_initializer:
     """
     Class to represent a population of groups.
 
@@ -162,7 +162,8 @@ class Population:
         """
         return [individual for group in self.groups for individual in group]
 
-    # --- ITERACTION : PARTNER SELECTION ---
+class Interaction_Manager(Pop_initializer):
+    # --- INTERACTION : PARTNER SELECTION ---
 
     def random_out_group_member(self, exclude_group_index: int) -> Individual:
         """
@@ -217,7 +218,7 @@ class Population:
             # Randomly select an individual from a different group
             return self.random_out_group_member(group_idx)
 
-    # --- ITERACTION : GAME PLAY & PAYOFFS ---
+    # --- INTERACTION : GAME PLAY & PAYOFFS ---
 
     def play_game(self):
         """
@@ -245,6 +246,7 @@ class Population:
             for individual in group:
                 individual.calculate_fitness()
 
+class Reproduction_Manager(Interaction_Manager):
     # --- REPRODUCTION ---
 
     def select_individual_for_duplication(self) -> tuple[Individual, int]:
@@ -311,7 +313,7 @@ class Population:
             return None  # or raise, or handle differently
         return random.choice(in_group)
 
-
+class Groups_Manager(Reproduction_Manager):
     # --- GROUP CONFLICT ---
 
     #__________________________________________OLD VERSION__________________________________________
@@ -399,11 +401,39 @@ class Population:
                     groups_involved.append(group) if group not in groups_involved else groups_involved
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
 
+
+        sentence = f"""select_conflict_groups call:
+            -len(conflict_individuals) : {len(conflict_individuals)}
+            -len(groups_involved) : {len(groups_involved)}
+            -len(groups_not_involved) : {len(groups_not_involved)}
+            -len(self.groups) : {len(self.groups)}
+        """
+        print(sentence)
+        if(len(groups_involved)+len(groups_not_involved)!=len(self.groups)):
+            easy_to_read_conflict_individuals = [ind.id for ind in conflict_individuals]
+
+            easy_to_read_groups_involved = [self.groups.index(current_group) for current_group in groups_involved]
+            easy_to_read_groups_not_involved = [self.groups.index(current_group) for current_group in groups_not_involved]
+            easy_to_read_groups = [self.groups.index(current_group) for current_group in self.groups]
+
+            error_sentence = f"""Error before conflict:
+                -easy_to_read_conflict_individuals : {easy_to_read_conflict_individuals}
+                -groups_involved : {easy_to_read_groups_involved}
+                -groups_not_involved : {easy_to_read_groups_not_involved}
+                -self.groups : {easy_to_read_groups}
+            """
+
+            print(error_sentence)
+        #logging.info(sentence)
+        
         return conflict_individuals,groups_involved,groups_not_involved
     
     def pairs_conflict_groups(self):
         conflict_individuals,groups_involved,groups_not_involved = self.select_conflict_groups()
 
+        if (len(conflict_individuals)>2):
+            logging.info("Not enough individuals for the conflict (at least 2)")
+            return [],[],-1
         num_groups_involved = len(groups_involved)
         if (num_groups_involved % 2) != 0:
             # Duplicate or remove a random group to make the number even
@@ -414,7 +444,7 @@ class Population:
                 groups_involved.remove(random_group)
                 logging.info("Removed a random group for conflict.")
             else:
-                if random.random() < 0.5:
+                if random.random() < 0.5 and len(groups_not_involved)>=1:
                     # Add a group to groups_involved
                     random_group = random.choice(groups_not_involved)
                     groups_involved.append(random_group)
@@ -427,7 +457,7 @@ class Population:
         
         # Pair the groups
         random.shuffle(groups_involved)
-        return conflict_individuals,[(groups_involved[i], groups_involved[i + 1]) for i in range(0, len(groups_involved), 2)]
+        return conflict_individuals,[(groups_involved[i], groups_involved[i + 1]) for i in range(0, len(groups_involved), 2)],0
 
     def conflict_groups_with_conflict_individuals(self):
         """
@@ -437,30 +467,56 @@ class Population:
         """
         logging.info("Simulating conflicts between groups.")
 
-        conflict_individuals, group_pairs = self.pairs_conflict_groups()
-        for group_1, group_2 in group_pairs:
-            payoff_1 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_1 )
-            payoff_2 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_2 )
-            
-            if payoff_1 == payoff_2:
-                win_probability_1 = 0.5
-            else:
-                win_probability_1 = payoff_1**(1 / z) / (payoff_1**(1 / z) + payoff_2**(1 / z))
-            
-            if random.random() < win_probability_1:
-                winner, loser = group_1, group_2
-            else:
-                winner, loser = group_2, group_1
 
-            # Replace the losing group with a (copied) version of the winning group
-            new_group = copy.deepcopy(winner)
-            loser_index = self.groups.index(loser)
-            self.groups[loser_index] = new_group
-            logging.info("Conflict resolved. Winner replaces loser.")
+        conflict_individuals, group_pairs, signal_code = self.pairs_conflict_groups()
+        if (signal_code!=-1):
+            for group_1, group_2 in group_pairs:
+                payoff_1 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_1 )
+                payoff_2 = sum(ind.payoff if ind in conflict_individuals else 0 for ind in group_2 )
+                
+                if payoff_1 == payoff_2:
+                    win_probability_1 = 0.5
+                else:
+                    win_probability_1 = payoff_1**(1 / z) / (payoff_1**(1 / z) + payoff_2**(1 / z))
+                
+                if random.random() < win_probability_1:
+                    winner, loser = group_1, group_2
+                else:
+                    winner, loser = group_2, group_1
+
+                # Replace the losing group with a (copied) version of the winning group
+
+                easy_to_read_groups = [self.groups.index(current_group) for current_group in self.groups]
+
+                crush_loser_sentence = f"""BEFORE crushing loser :
+                    -self.groups : {easy_to_read_groups}
+                """
+                logging.info(crush_loser_sentence)
+                new_group = copy.deepcopy(winner)
+                loser_index = self.groups.index(loser)
+                self.groups[loser_index] = new_group
+                easy_to_read_groups = [self.groups.index(current_group) for current_group in self.groups]
+
+                crush_loser_sentence = f"""AFTER crushing loser : 
+                    -self.groups : {easy_to_read_groups}
+                """
+                logging.info(crush_loser_sentence)
+
+                logging.info("Conflict resolved. Winner replaces loser.")
         
         
     # --- GROUP SPLITTING ---
 
+    def force_splitting(self,group_1 : list,group_2 : list):
+        if len(group_1)==0:
+            forced_ind = random.choice(group_2)
+            group_1.append(forced_ind)
+            group_2.pop(forced_ind)
+        elif len(group_2)==0:
+            forced_ind = random.choice(group_1)
+            group_2.append(forced_ind)
+            group_2.pop(forced_ind)
+        
     def split_group(self, index: int):
         """
         Split the group at the given index into two smaller groups of equal (or nearly equal) size.
@@ -482,8 +538,9 @@ class Population:
 
         if len(new_group_1) == 0 or len(new_group_2) == 0:
             # If one group is empty, merge them back together
-            logging.info("Group splitting failed. Merging groups back together.")
-            self.split_group(index)
+            logging.info(f"Group splitting failed. Forcing one group to get at least one individual")
+            self.force_splitting(new_group_1,new_group_2)
+            logging.info(f"len(group) : {len(group)}/len(new_group_1) : {len(new_group_1)}/len(new_group_2) : {len(new_group_2)}")
         
         self.groups[index] = new_group_1
         self.groups[random.choice([i for i in range(len(self.groups)) if i != index])] = new_group_2
@@ -512,6 +569,8 @@ class Population:
                 individual.payoff = 0.0
                 individual.fitness = 0.0
     
+class Population(Groups_Manager):
+
     # --- SIMULATION ---
 
     def run_simulation(self):

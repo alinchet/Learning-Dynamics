@@ -1,0 +1,12 @@
+Attempting to create logs folder at: /mnt/c/MES_Programmes/VirtualMachineSharedFolder/Polytech_bis/0_MA/year_24_25/Learning_Dynamics/0_Exam_Project/Learning-Dynamics/run_logs
+Directory '/mnt/c/MES_Programmes/VirtualMachineSharedFolder/Polytech_bis/0_MA/year_24_25/Learning_Dynamics/0_Exam_Project/Learning-Dynamics/run_logs' already exists.
+Current Time: 03:45:51 and Run : 0
+select_conflict_groups call:
+            -len(conflict_individuals) : 2
+            -len(groups_involved) : 2
+            -len(groups_not_involved) : 8
+            -len(self.groups) : 10
+        
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 03:45:51
+

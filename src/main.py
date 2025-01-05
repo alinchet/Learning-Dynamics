@@ -1,4 +1,6 @@
 import src.tools as tools
+import os
+
 
 if __name__ == '__main__':
     nbr_runs = 1
