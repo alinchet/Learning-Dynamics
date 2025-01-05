@@ -74,13 +74,15 @@ def save_run_output(tested_feature,tested_feature_name,probabilities):
         """
         f.write(sentence)
 
-def plot_graph(selected_feature,probabilities,x_label,y_label,color):
+def save_graph(selected_feature,probabilities,x_label,y_label,color):
     plt.plot(selected_feature,probabilities,color)
     plt.title(f"{y_label} Vs {x_label}")
     plt.xlabel(x_label)
     plt.ylabel(y_label)
 
-    plt.show()
+    # Save the plot to a file
+    plt.savefig(f"{y_label}_Vs_{x_label}.png")
+    plt.close()
 
 # All runs
 

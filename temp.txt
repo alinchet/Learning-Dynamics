@@ -1,0 +1,28 @@
+Attempting to create logs folder at: /mnt/c/MES_Programmes/VirtualMachineSharedFolder/Polytech_bis/0_MA/year_24_25/Learning_Dynamics/0_Exam_Project/Learning-Dynamics/run_logs
+Directory '/mnt/c/MES_Programmes/VirtualMachineSharedFolder/Polytech_bis/0_MA/year_24_25/Learning_Dynamics/0_Exam_Project/Learning-Dynamics/run_logs' already exists.
+Loaded Configuration:
+  kappa: 0.025
+  q: 0.01
+  n: 10
+  m: 10
+  b: 2.0
+  c: 1.0
+  z: 0.5
+  alpha: 0.8
+  lambda_mig: 0.0
+  w: 0.1
+  N: 100
+Running simulations for bc_ratio: 1.5
+Current Time: 17:21:38 and Run: 0
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 17:21:38 and Run: 1
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 17:21:38 and Run: 2
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 17:21:38 and Run: 3
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 17:21:38 and Run: 4
+Population is homogeneous -> Strategy.EGOIST.
+Current Time: 17:21:38 and Run: 5
+Population is homogeneous -> Strategy.ALTRUIST.
+Current Time: 17:21:38 and Run: 6
