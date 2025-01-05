@@ -75,6 +75,14 @@ def save_run_output(tested_feature,tested_feature_name,probabilities):
         f.write(sentence)
 
 def save_graph(selected_feature,probabilities,x_label,y_label,color):
+    sentence = f"""Here are the given input to the function save_graph:
+        -selected_feature : {selected_feature}
+        -probabilities : {probabilities}
+        -x_label : {x_label}
+        -y_label : {y_label}
+    """
+    print(sentence)
+
     plt.plot(selected_feature,probabilities,color)
     plt.title(f"{y_label} Vs {x_label}")
     plt.xlabel(x_label)
@@ -84,6 +92,38 @@ def save_graph(selected_feature,probabilities,x_label,y_label,color):
     plt.savefig(f"{y_label}_Vs_{x_label}.png")
     plt.close()
 
+def save_graphs(selected_feature, probabilities, x_label, y_label):
+    """
+    Plot the fixation probabilities for different strategies as separate lines.
+
+    Parameters:
+        selected_feature: List of x-axis values.
+        probabilities: Dictionary mapping each x-axis value to a dictionary of strategies and their probabilities.
+        x_label: Label for the x-axis.
+        y_label: Label for the y-axis.
+    """
+    # Extract strategies
+    strategies = list(next(iter(probabilities.values())).keys())
+    
+    # Create a plot for each strategy
+    for strategy in strategies:
+        # Extract the probabilities for this strategy
+        strategy_probabilities = [probabilities[feature].get(strategy, 0) for feature in selected_feature]
+        
+        # Plot the line for this strategy
+        plt.plot(selected_feature, strategy_probabilities, label=strategy)
+    
+    # Add plot title and axis labels
+    plt.title(f"{y_label} Vs {x_label}")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    
+    # Add a legend
+    plt.legend()
+    
+    # Save the plot to a file
+    plt.savefig(f"{y_label}_Vs_{x_label}.png")
+    plt.close()
 # All runs
 
 def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
@@ -121,6 +161,8 @@ def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
 
 def run_bc_simulation(nbr_runs):
     bc_ratios = [1.5 + i / 2 for i in range(0, 8, 1)]
+    bc_ratios = [1.5 + i / 2 for i in range(0, 3, 1)] #JUST FOR SMALLER TESTS
+    
     return run_simulation(
         nbr_runs,
         "bc_ratio",
