@@ -161,7 +161,7 @@ def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
 
 def run_bc_simulation(nbr_runs):
     bc_ratios = [1.5 + i / 2 for i in range(0, 8, 1)]
-    bc_ratios = [1.5 + i / 2 for i in range(0, 3, 1)] #JUST FOR SMALLER TESTS
+    
     
     return run_simulation(
         nbr_runs,
