@@ -516,7 +516,7 @@ class Groups_Manager(Reproduction_Manager):
         elif len(group_2)==0:
             forced_ind = random.choice(group_1)
             group_2.append(forced_ind)
-            group_2.pop(forced_ind)
+            group_1.pop(group_1.index(forced_ind))
         
     def split_group(self, index: int):
         """
