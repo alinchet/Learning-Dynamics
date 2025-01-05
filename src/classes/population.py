@@ -512,7 +512,7 @@ class Groups_Manager(Reproduction_Manager):
         if len(group_1)==0:
             forced_ind = random.choice(group_2)
             group_1.append(forced_ind)
-            group_2.pop(forced_ind)
+            group_2.pop(group_2.index(forced_ind))
         elif len(group_2)==0:
             forced_ind = random.choice(group_1)
             group_2.append(forced_ind)
