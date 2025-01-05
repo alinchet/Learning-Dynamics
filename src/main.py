@@ -3,7 +3,7 @@ import os
 
 
 if __name__ == '__main__':
-    nbr_runs = 1
+    nbr_runs = 10
     winner_strategy = []
     tools.create_logs_folder()
 
