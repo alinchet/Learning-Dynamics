@@ -129,7 +129,6 @@ def save_graphs(selected_feature, probabilities, x_label, y_label,nbr_runs):
 def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
     from src.classes.population import Population
     reset_config()
-    now = datetime.now()
 
     # Store probabilities for each parameter value
     probabilities = {}
@@ -143,6 +142,7 @@ def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
             config_modifier(value)
 
             # Run simulation
+            now = datetime.now()
             print(f"Current Time: {now.strftime('%H:%M:%S')} and Run: {i}")
             population = Population(num_groups=10, num_individuals=10)
             winner_strategy.append(population.run_simulation())
