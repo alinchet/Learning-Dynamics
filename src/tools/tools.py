@@ -59,8 +59,9 @@ def reset_config():
 
 def main(nbr_runs,winner_strategy):
     from src.classes.population import Population
-    now = datetime.now()
+    
     for i in range(nbr_runs):
+        now = datetime.now()
         print(f"Current Time: {now.strftime('%H:%M:%S')} and Run : {i}")
         population = Population(num_groups=10, num_individuals=10)
         winner_strategy.append(population.run_simulation())
@@ -129,8 +130,6 @@ def save_graphs(selected_feature, probabilities, x_label, y_label,nbr_runs):
 def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
     from src.classes.population import Population
     reset_config()
-    now = datetime.now()
-
     # Store probabilities for each parameter value
     probabilities = {}
 
@@ -141,8 +140,10 @@ def run_simulation(nbr_runs, parameter_name, parameter_values, config_modifier):
         for i in range(nbr_runs):
             # Modify configuration using the provided modifier function
             config_modifier(value)
+            
 
             # Run simulation
+            now = datetime.now()
             print(f"Current Time: {now.strftime('%H:%M:%S')} and Run: {i}")
             population = Population(num_groups=10, num_individuals=10)
             winner_strategy.append(population.run_simulation())
