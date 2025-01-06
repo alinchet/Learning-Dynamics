@@ -198,7 +198,7 @@ def run_m_simulation(nbr_runs):
     ),"group_number","Fixation Probability"
 
 def run_alpha_simulation(nbr_runs):
-    alpha_values = [0 + i / 10 for i in range(0, 110, 10)]
+    alpha_values = [0 + i / 100 for i in range(0, 110, 10)]
     return run_simulation(
         nbr_runs,
         "alpha",

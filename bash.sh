@@ -31,15 +31,22 @@ elif [ "$1" == "run" ]; then
     python -m src.main 1
     echo "Simulation completed successfully."
 
+elif [ "$1" == "run5" ]; then
+    # Step 3: Run the Simulation
+    source $ENV_DIR/bin/activate
+    echo "Running the simulation..."
+    python -m src.main 5 > temp.txt
+    echo "Simulation completed successfully."
+
 elif [ "$1" == "run_all" ]; then
     # Step 3: Run the Simulation
     source $ENV_DIR/bin/activate
     echo "Running the simulation..."
-    python -m src.main 1
-    python -m src.main 2
-    python -m src.main 3
-    python -m src.main 4
-    python -m src.main 5
+    python -m src.main 1 > temp.txt
+    python -m src.main 2 >> temp.txt
+    python -m src.main 3 >> temp.txt
+    python -m src.main 4 >> temp.txt
+    python -m src.main 5 >> temp.txt
     echo "Simulation completed successfully."
 
 elif [ "$1" == "clean" ]; then

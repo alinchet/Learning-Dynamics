@@ -398,6 +398,7 @@ class Groups_Manager(Reproduction_Manager):
         for group in self.groups:
             for ind in group:
                 if random.random() < kappa:
+                    #TODO : Check usage of kappa
                     conflict_individuals.append(ind)
                     groups_involved.append(group) if group not in groups_involved else groups_involved
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
@@ -409,7 +410,7 @@ class Groups_Manager(Reproduction_Manager):
             -len(groups_not_involved) : {len(groups_not_involved)}
             -len(self.groups) : {len(self.groups)}
         """
-        #print(sentence)
+        print(sentence)
         if(len(groups_involved)+len(groups_not_involved)!=len(self.groups)):
             easy_to_read_conflict_individuals = [ind.id for ind in conflict_individuals]
 
@@ -432,13 +433,12 @@ class Groups_Manager(Reproduction_Manager):
     def pairs_conflict_groups(self):
         conflict_individuals,groups_involved,groups_not_involved = self.select_conflict_groups()
 
-        if (len(conflict_individuals)>2):
+        if (len(conflict_individuals)<2):
             logging.info("Not enough individuals for the conflict (at least 2)")
             return [],[],-1
         num_groups_involved = len(groups_involved)
         if (num_groups_involved % 2) != 0:
             # Duplicate or remove a random group to make the number even
-
             if num_groups_involved == len(self.groups):
                 # If all groups are involved, only remove a random group to get even number of groups
                 random_group = random.choice(groups_involved)
