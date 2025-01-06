@@ -42,7 +42,7 @@ def main(nbr_runs):
 
 
 if __name__ == '__main__':
-    nbr_runs = 20
+    nbr_runs = 15
     winner_strategy = []
     tools.create_logs_folder()
 
