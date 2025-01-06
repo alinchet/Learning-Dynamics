@@ -28,9 +28,19 @@ elif [ "$1" == "run" ]; then
     # Step 3: Run the Simulation
     source $ENV_DIR/bin/activate
     echo "Running the simulation..."
-    python -m src.main
+    python -m src.main 1
     echo "Simulation completed successfully."
 
+elif [ "$1" == "run_all" ]; then
+    # Step 3: Run the Simulation
+    source $ENV_DIR/bin/activate
+    echo "Running the simulation..."
+    python -m src.main 1
+    python -m src.main 2
+    python -m src.main 3
+    python -m src.main 4
+    python -m src.main 5
+    echo "Simulation completed successfully."
 
 elif [ "$1" == "clean" ]; then
     # Step 5: Clean Up (optional)
@@ -44,5 +54,6 @@ else
 	./bash.sh clone
 	./bash.sh setup
 	./bash.sh run
+    ./bash.sh run_all
 	./bash.sh clean"
 fi
