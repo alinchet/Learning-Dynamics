@@ -4,12 +4,6 @@ import logging
 import copy
 import uuid
 
-# Configure logging
-logging.basicConfig(
-    filename='run_logs/individuals.log',  # Log file name
-    level=logging.INFO,          # Log level (you can adjust to DEBUG, ERROR, etc.)
-    format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
-)
 class Basic_Individual:
 
     individual_counter = 0 #Class level counter

@@ -6,13 +6,6 @@ from src.classes.individual import Individual
 from src.constants.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
 from src.config.config import n, q, z, lambda_mig, alpha, kappa
 
-# --- Logging Setup ---
-logging.basicConfig(
-    filename='run_logs/population.log',  # Log file name
-    level=logging.INFO,          # Log level (you can adjust to DEBUG, ERROR, etc.)
-    format='%(asctime)s - %(levelname)s - %(message)s'  # Log format with timestamp
-)
-
 class Pop_initializer:
     """
     Class to represent a population of groups.
