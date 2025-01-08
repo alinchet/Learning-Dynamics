@@ -2,12 +2,10 @@
 from src.constants.constants import Strategy
 import src.config.config as config
 
-from datetime import datetime
-import os
-import json
-
 from collections import Counter
 import matplotlib.pyplot as plt
+from datetime import datetime
+import json
 
 
 def check_config(file_path):
@@ -29,15 +27,6 @@ def check_config(file_path):
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
 
-def create_logs_folder():
-    newpath = os.path.abspath("./run_logs/")
-    print(f"Attempting to create logs folder at: {newpath}")
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
-        print(f"Directory '{newpath}' created successfully.")
-    else:
-        print(f"Directory '{newpath}' already exists.")
-
 def reset_config():
     basic_config = check_config('src/config/config.json')
 
@@ -55,7 +44,6 @@ def reset_config():
     config.alpha = basic_config["alpha"]
     config.lambda_mig = basic_config["lambda_mig"]
     config.w = basic_config["w"]
-    config.N = basic_config["N"]
 
 def main(nbr_runs,winner_strategy):
     from src.classes.population import Population
@@ -171,7 +159,7 @@ def run_bc_simulation(nbr_runs):
         lambda bc_ratio: setattr(config, "c", config.b * bc_ratio)
     ),"bc_ratio","Fixation Probability"
 
-def run_lambda_mig_simulation(nbr_runs):
+def run_lambda_simulation(nbr_runs):
     migration_values = [0 + i / 10 for i in range(0, 110, 10)]
     return run_simulation(
         nbr_runs,
