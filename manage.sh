@@ -48,7 +48,7 @@ case "$1" in
         source $ENV_DIR/bin/activate
         echo "Running the simulation..."
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        python -m src.main 1 > $LOG_DIR/run_1_$TIMESTAMP.log
+        python -m src.main 1 | tee $LOG_DIR/run_1_$TIMESTAMP.log
         echo "Simulation completed successfully. Logs saved to $LOG_DIR/run_1_$TIMESTAMP.log."
         ;;
 
@@ -63,7 +63,7 @@ case "$1" in
         echo "Running all simulations..."
         for i in {1..5}; do
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            python -m src.main $i > $LOG_DIR/run_${i}_$TIMESTAMP.log
+            python -m src.main $i | tee $LOG_DIR/run_${i}_$TIMESTAMP.log
             echo "Simulation $i completed. Logs saved to $LOG_DIR/run_${i}_$TIMESTAMP.log."
         done
         echo "All simulations completed successfully."
