@@ -1,5 +1,5 @@
 from src.classes.individual import Individual
-from src.constants.constants import Strategy
+from src.settings.constants import Strategy
 import random
 
 

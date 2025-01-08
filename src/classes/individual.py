@@ -1,8 +1,7 @@
-from src.constants.constants import Strategy
-from src.config.config import w
+from src.settings.constants import Strategy
+from src.settings.config import w
 import logging
 import copy
-import uuid
 
 class Basic_Individual:
 

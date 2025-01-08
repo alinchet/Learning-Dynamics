@@ -3,8 +3,8 @@ import random
 import copy
 
 from src.classes.individual import Individual
-from src.constants.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.config.config import n, q, z, lambda_mig, alpha, kappa
+from src.settings.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
+from src.settings.config import n, q, z, lambda_mig, alpha, kappa
 
 class Pop_initializer:
     """
@@ -601,7 +601,6 @@ class Population(Groups_Manager):
             self.reset_payoffs_and_fitness() # TODO check if necessary
         
         logging.info(f"Simulation complete. Population is homogeneous -> {self.get_homogeneous_strategy()}.")
-        print(f"Population is homogeneous -> {self.get_homogeneous_strategy()}.")
         return self.get_homogeneous_strategy()
         
 
