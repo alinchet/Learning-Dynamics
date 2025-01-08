@@ -25,11 +25,8 @@ Assumptions:
 5) We keep an example set of parameter ranges. Adjust to replicate the paper's figures.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
 import random
-import copy
-import time
 
 # Example: import your existing modules
 # from population import Population
