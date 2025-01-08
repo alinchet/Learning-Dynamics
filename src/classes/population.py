@@ -330,11 +330,16 @@ class Groups_Manager(Reproduction_Manager):
         groups_involved = [group for group in random.sample(self.groups, num_groups_involved)]
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
 
-        if (num_groups_involved % 2) != 0:
+        for group in self.groups:
+            if random.random()< kappa:
+                groups_involved.append(group)
+        groups_not_involved = [group for group in self.groups if group not in groups_involved]
+
+        if (len(groups_involved) % 2) != 0:
             # Duplicate or remove a random group to make the number even
 
-            if num_groups_involved == len(self.groups):
-                # If all groups are involved, remove a random group
+            if len(groups_involved) == len(self.groups):
+                # If all groups are involved, we have to remove a random group
                 random_group = random.choice(groups_involved)
                 groups_involved.remove(random_group)
                 logging.info("Removed a random group for conflict.")
@@ -361,7 +366,13 @@ class Groups_Manager(Reproduction_Manager):
         In case of a tie, a random winner is chosen.
         """
         logging.info("Simulating conflicts between groups.")
-        for group_1, group_2 in self.pair_groups():
+
+        paired_groups = self.pair_groups()
+    
+        if not paired_groups:
+            logging.info("No groups paired for conflict. Skipping conflict resolution.")
+            return
+        for group_1, group_2 in paired_groups:
             payoff_1 = sum(ind.payoff for ind in group_1)
             payoff_2 = sum(ind.payoff for ind in group_2)
             
@@ -398,6 +409,7 @@ class Groups_Manager(Reproduction_Manager):
         for group in self.groups:
             for ind in group:
                 if random.random() < kappa:
+                    #TODO : Check usage of kappa
                     conflict_individuals.append(ind)
                     groups_involved.append(group) if group not in groups_involved else groups_involved
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
@@ -409,7 +421,7 @@ class Groups_Manager(Reproduction_Manager):
             -len(groups_not_involved) : {len(groups_not_involved)}
             -len(self.groups) : {len(self.groups)}
         """
-        #print(sentence)
+        print(sentence)
         if(len(groups_involved)+len(groups_not_involved)!=len(self.groups)):
             easy_to_read_conflict_individuals = [ind.id for ind in conflict_individuals]
 
@@ -432,13 +444,12 @@ class Groups_Manager(Reproduction_Manager):
     def pairs_conflict_groups(self):
         conflict_individuals,groups_involved,groups_not_involved = self.select_conflict_groups()
 
-        if (len(conflict_individuals)>2):
+        if (len(conflict_individuals)<2):
             logging.info("Not enough individuals for the conflict (at least 2)")
             return [],[],-1
         num_groups_involved = len(groups_involved)
         if (num_groups_involved % 2) != 0:
             # Duplicate or remove a random group to make the number even
-
             if num_groups_involved == len(self.groups):
                 # If all groups are involved, only remove a random group to get even number of groups
                 random_group = random.choice(groups_involved)
@@ -589,8 +600,9 @@ class Population(Groups_Manager):
             self.play_game()
             self.calculate_fitness()
             self.reproduce()
-            #self.conflict_groups()
-            self.conflict_groups_with_conflict_individuals()
+            self.conflict_groups()
+            #self.conflict_groups_with_conflict_individuals()
+
             self.split_groups()
             self.calculate_fitness()
             self.reset_payoffs_and_fitness() # TODO check if necessary

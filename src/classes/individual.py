@@ -164,6 +164,7 @@ class Individual(Basic_Individual):
 
         logging.info(f"Individual {self.id} get cloned to generate the clone {clone.id}")
         return clone
+    
     # --- Comparison Methods ---
     def __eq__(self, other):
         """Check equality based on the unique ID."""
