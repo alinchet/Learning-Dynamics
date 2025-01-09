@@ -1,41 +1,85 @@
-import src.tools.tools as tools
-import sys
+import os
+import matplotlib.pyplot as plt
+import numpy as np
 
-def main(nbr_runs):
-    # Check if an argument is provided
-    if len(sys.argv) < 2:
-        print("Usage: python -m src.main <arg>")
-        sys.exit(1)
+from src.classes.population import Population
+from src.settings.constants import Strategy
+import src.settings.config as config
 
-    # Access the argument
-    argument = int(sys.argv[1])
-    
-    # Process the argument (convert to integer, for example)
-    try:
-        if argument == 1:
-            (bc_ratio_values,probabilities),x_label,y_label = tools.run_bc_simulation(nbr_runs)
-            tools.save_graphs(bc_ratio_values,probabilities,x_label,y_label,nbr_runs)
+def simulate_fixation_probabilities(runs=10, mutant_strategy=Strategy.ALTRUIST):
+    """
+    Simulates fixation probabilities based on multiple runs.
 
-        if argument == 2:
-            (lambda_mig_values,probabilities),x_label,y_label = tools.run_lambda_simulation(nbr_runs)
-            tools.save_graphs(lambda_mig_values,probabilities,x_label,y_label,nbr_runs)
+    Args:
+        runs (int): Number of simulations to run.
 
-        if argument == 3:
-            (n_values,probabilities,x_label),y_label = tools.run_n_simulation(nbr_runs)
-            tools.save_graphs(n_values,probabilities,x_label,y_label,nbr_runs)
+    Returns:
+        float: Fixation probability (proportion of mutant's strategy outcomes).
+    """
+    counter = 0
+    for i in range(runs):
+        try:
+            print(f"Run {i+1}/{runs}: Simulating for {mutant_strategy.name}")
+            population = Population(mutant_strategy)
+            result = population.run_simulation()
+            if result == mutant_strategy:
+                counter += 1
+            print(f"Result for run {i+1}: {result}")
+        except Exception as e:
+            print(f"Error during simulation run {i+1}: {e}")
+            continue
 
-        if argument == 4:
-            (m_values,probabilities),x_label,y_label = tools.run_m_simulation(nbr_runs)
-            tools.save_graphs(m_values,probabilities,x_label,y_label,nbr_runs)
+    # Calculate fixation probability
+    fixation_prob = counter / runs
+    print(f"Fixation probability for {mutant_strategy.name}: {fixation_prob}")
+    return fixation_prob
 
-        if argument == 5:
-            (alpha_values,probabilities),x_label,y_label = tools.run_alpha_simulation(nbr_runs)
-            tools.save_graphs(alpha_values,probabilities,x_label,y_label,nbr_runs)
+# Figure 2: Fixation probability vs b/c
+def fig2_fixation_vs_bc():
+    os.makedirs('plots', exist_ok=True)
 
-    except ValueError:
-        print("Error: Argument must be a valid integer.")
+    bc_values = np.arange(1.5, 5.1, 0.1)
+    altruist_results = []
+    parochialist_results = []
 
+    for bc in bc_values:
+        # Simulate for altruist mutants
+        config.b, config.c = bc, 1.0
+        mutant_strategy = Strategy.ALTRUIST
+        print(f"\nSimulating for altruist mutants with b/c={bc:.2f}")
+        altruist_fixation_prob = simulate_fixation_probabilities(runs=10, mutant_strategy=mutant_strategy)
+        altruist_results.append(altruist_fixation_prob)
 
-if __name__ == '__main__':
-    nbr_runs = 10
-    main(nbr_runs)
+        # Simulate for parochialist mutants
+        mutant_strategy = Strategy.PAROCHIALIST
+        print(f"\nSimulating for parochialist mutants with b/c={bc:.2f}")
+        parochialist_fixation_prob = simulate_fixation_probabilities(runs=10, mutant_strategy=mutant_strategy)
+        parochialist_results.append(parochialist_fixation_prob)
+
+    # Plot altruist fixation probabilities (green line)
+    plt.plot(bc_values, altruist_results, 'g-', label='Altruists')
+
+    # Plot parochialist fixation probabilities (red line)
+    plt.plot(bc_values, parochialist_results, 'r-', label='Parochialists')
+
+    # Add neutral mutant threshold (black dashed line)
+    plt.axhline(y=0.01, color='black', linestyle='--', label='Selection')
+
+    # Add labels, title, legend, and grid
+    plt.xlabel('b/c (Benefit-to-Cost Ratio)')
+    plt.ylabel('Fixation Probability')
+    plt.title('Fixation Probability vs b/c')
+    plt.legend(loc='upper right')
+    plt.grid(True)
+
+    # Save and show the plot
+    output_file = 'plots/fig2_fixation_vs_bc.png'
+    plt.savefig(output_file)
+    print(f"\nPlot saved to {output_file}")
+
+# Run all simulations and save figures
+def main():
+    fig2_fixation_vs_bc()
+
+if __name__ == "__main__":
+    main()

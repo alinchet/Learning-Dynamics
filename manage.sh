@@ -48,8 +48,8 @@ case "$1" in
         source $ENV_DIR/bin/activate
         echo "Running the simulation..."
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        python -m src.main 1 | tee $LOG_DIR/run_1_$TIMESTAMP.log
-        echo "Simulation completed successfully. Logs saved to $LOG_DIR/run_1_$TIMESTAMP.log."
+        python -m src.main 1
+        echo "Simulation completed successfully."
         ;;
 
     "run_all")

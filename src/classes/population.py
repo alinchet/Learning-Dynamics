@@ -4,7 +4,7 @@ import copy
 
 from src.classes.individual import Individual
 from src.settings.constants import Strategy, A_IN_MATRIX, A_OUT_MATRIX
-from src.settings.config import n, q, z, lambda_mig, alpha, kappa
+from src.settings.config import kappa, q, n, m, z, alpha, lambda_mig
 
 class Pop_initializer:
     """
@@ -21,10 +21,7 @@ class Pop_initializer:
 
     # --- INITIALIZATION ---
 
-    def __init__(self,
-                 num_groups: int = 10,
-                 num_individuals: int = 10,
-                 mutant_strategy: Strategy = Strategy.ALTRUIST):
+    def __init__(self, mutant_strategy: Strategy = Strategy.ALTRUIST):
         """
         Initialize a population with groups of individuals.
 
@@ -34,11 +31,11 @@ class Pop_initializer:
             mutant_strategy (Strategy): Strategy for the mutant individual.
         """
         logging.info(
-            f"Initializing population with {num_groups} groups, "
-            f"{num_individuals} individuals each."
+            f"Initializing population with {m} groups, "
+            f"{n} individuals each."
         )
-        self.num_groups = num_groups
-        self.num_individuals = num_individuals
+        self.num_groups = m
+        self.num_individuals = n
         self.groups = self._initialize_population(mutant_strategy)
 
     def _initialize_population(self, mutant_strategy: Strategy) -> list[list[Individual]]:
@@ -189,7 +186,7 @@ class Interaction_Manager(Pop_initializer):
             in_group = [ind for ind in self.groups[group_index] if ind != individual]
             return random.choice(in_group)
         else:
-            logging.warning("No in-group members found.") #TODO check what should we do? jsp ce qui cause un groupe vide
+            # logging.warning("No in-group members found.") #TODO check what should we do? jsp ce qui cause un groupe vide
             return self.random_out_group_member(group_index)  # Returns 
 
     def get_random_partner(self, individual: Individual) -> Individual:
@@ -303,7 +300,7 @@ class Reproduction_Manager(Interaction_Manager):
     def random_in_group_member2(self, individual: Individual, group_index: int) -> Individual | None:
         in_group = [ind for ind in self.groups[group_index] if ind != individual]
         if not in_group:
-            logging.warning("No in-group members found.")
+            # logging.warning("No in-group members found.")
             return None  # or raise, or handle differently
         return random.choice(in_group)
 
@@ -578,7 +575,7 @@ class Population(Groups_Manager):
 
     # --- SIMULATION ---
 
-    def run_simulation(self):
+    def run_simulation(self) -> Strategy:
         """
         Execute the full simulation loop until the population becomes homogeneous.
         The loop includes:
@@ -594,7 +591,6 @@ class Population(Groups_Manager):
             self.calculate_fitness()
             self.reproduce()
             self.conflict_groups()
-            #self.conflict_groups_with_conflict_individuals()
 
             self.split_groups()
             self.calculate_fitness()
@@ -602,7 +598,6 @@ class Population(Groups_Manager):
         
         logging.info(f"Simulation complete. Population is homogeneous -> {self.get_homogeneous_strategy()}.")
         return self.get_homogeneous_strategy()
-        
 
     # --- STRING REPRESENTATION ---
 
