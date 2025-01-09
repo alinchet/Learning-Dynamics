@@ -19,7 +19,6 @@ def simulate_fixation_probabilities(runs=10, mutant_strategy=Strategy.ALTRUIST):
     counter = 0
     for i in range(runs):
         try:
-            print(f"Run {i+1}/{runs}: Simulating for {mutant_strategy.name}")
             population = Population(mutant_strategy)
             result = population.run_simulation()
             if result == mutant_strategy:
@@ -35,25 +34,25 @@ def simulate_fixation_probabilities(runs=10, mutant_strategy=Strategy.ALTRUIST):
     return fixation_prob
 
 # Figure 2: Fixation probability vs b/c
-def fig2_fixation_vs_bc():
+def fig2_fixation_vs_bc(runs=15):
     os.makedirs('plots', exist_ok=True)
 
-    bc_values = np.arange(1.5, 5.1, 0.1)
+    bc_values = np.arange(1.5, 5.1, 0.5)
     altruist_results = []
     parochialist_results = []
 
     for bc in bc_values:
         # Simulate for altruist mutants
-        config.b, config.c = bc, 1.0
+        config.b, config.c = 1.0, 1/bc
         mutant_strategy = Strategy.ALTRUIST
         print(f"\nSimulating for altruist mutants with b/c={bc:.2f}")
-        altruist_fixation_prob = simulate_fixation_probabilities(runs=10, mutant_strategy=mutant_strategy)
+        altruist_fixation_prob = simulate_fixation_probabilities(runs, mutant_strategy=mutant_strategy)
         altruist_results.append(altruist_fixation_prob)
 
         # Simulate for parochialist mutants
         mutant_strategy = Strategy.PAROCHIALIST
         print(f"\nSimulating for parochialist mutants with b/c={bc:.2f}")
-        parochialist_fixation_prob = simulate_fixation_probabilities(runs=10, mutant_strategy=mutant_strategy)
+        parochialist_fixation_prob = simulate_fixation_probabilities(runs, mutant_strategy=mutant_strategy)
         parochialist_results.append(parochialist_fixation_prob)
 
     # Plot altruist fixation probabilities (green line)
@@ -63,7 +62,7 @@ def fig2_fixation_vs_bc():
     plt.plot(bc_values, parochialist_results, 'r-', label='Parochialists')
 
     # Add neutral mutant threshold (black dashed line)
-    plt.axhline(y=0.01, color='black', linestyle='--', label='Selection')
+    plt.axhline(y=0.01, color='black', label='Selection')
 
     # Add labels, title, legend, and grid
     plt.xlabel('b/c (Benefit-to-Cost Ratio)')
@@ -73,13 +72,14 @@ def fig2_fixation_vs_bc():
     plt.grid(True)
 
     # Save and show the plot
-    output_file = 'plots/fig2_fixation_vs_bc.png'
+    output_file = 'plots/fig2_fixation_vs_bc_2.png'
     plt.savefig(output_file)
     print(f"\nPlot saved to {output_file}")
 
 # Run all simulations and save figures
 def main():
-    fig2_fixation_vs_bc()
+    runs = 15
+    fig2_fixation_vs_bc(runs)
 
 if __name__ == "__main__":
     main()
