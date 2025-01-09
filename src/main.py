@@ -59,64 +59,97 @@ def simulate_fixation_probabilities(runs=10, mutant_strategy=Strategy.ALTRUIST, 
                 print(f"Completed simulation {i}/{runs}, Result: {'MUTANT' if result else 'EGOIST'}")
             except Exception as e:
                 logging.error(f"Error in simulation {i}: {e}")
-                continue
 
     # Calculate fixation probability
     fixation_prob = counter / runs
     logging.info(f"Fixation probability for {mutant_strategy.name}: {fixation_prob}")
     return fixation_prob
 
-# Figure 2: Fixation probability vs b/c
-def fig2_fixation_vs_bc(runs=15, max_workers=4):
+def generate_plot(x_values, altruist_results, parochialist_results, xlabel, title, filename_prefix):
+    """
+    Generates and saves a plot with given results.
+
+    Args:
+        x_values (list): X-axis values.
+        altruist_results (list): Fixation probabilities for altruists.
+        parochialist_results (list): Fixation probabilities for parochialists.
+        xlabel (str): Label for the X-axis.
+        title (str): Title of the plot.
+        filename_prefix (str): Prefix for the saved file.
+    """
     os.makedirs('plots', exist_ok=True)
 
+    plt.plot(x_values, altruist_results, 'g-', label='Altruists')
+    plt.plot(x_values, parochialist_results, 'r-', label='Parochialists')
+    plt.axhline(y=0.01, color='black', label='Selection')
+
+    plt.xlabel(xlabel)
+    plt.ylabel('Fixation Probability')
+    plt.title(title)
+    plt.legend(loc='upper right')
+    plt.grid(True)
+
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_file = f'plots/{filename_prefix}_{timestamp}.png'
+    plt.savefig(output_file)
+    plt.close()
+    print(f"\nPlot saved to {output_file}")
+
+def fig2_fixation_vs_bc(runs=15, max_workers=4):
+    """
+    Generates Figure 2: Fixation probability vs b/c.
+    """
     bc_values = np.arange(1.5, 5.1, 0.5)
     altruist_results = []
     parochialist_results = []
 
     for bc in bc_values:
-        # Update b/c ratio
         config.b, config.c = 1.0, 1 / bc
 
         # Simulate for altruist mutants
-        mutant_strategy = Strategy.ALTRUIST
         print(f"\nSimulating for altruist mutants with b/c={bc:.2f}")
-        altruist_fixation_prob = simulate_fixation_probabilities(runs, mutant_strategy=mutant_strategy, max_workers=max_workers)
+        altruist_fixation_prob = simulate_fixation_probabilities(runs, Strategy.ALTRUIST, max_workers)
         altruist_results.append(altruist_fixation_prob)
 
         # Simulate for parochialist mutants
-        mutant_strategy = Strategy.PAROCHIALIST
         print(f"\nSimulating for parochialist mutants with b/c={bc:.2f}")
-        parochialist_fixation_prob = simulate_fixation_probabilities(runs, mutant_strategy=mutant_strategy, max_workers=max_workers)
+        parochialist_fixation_prob = simulate_fixation_probabilities(runs, Strategy.PAROCHIALIST, max_workers)
         parochialist_results.append(parochialist_fixation_prob)
 
-    # Plot altruist fixation probabilities (green line)
-    plt.plot(bc_values, altruist_results, 'g-', label='Altruists')
+    generate_plot(bc_values, altruist_results, parochialist_results, 'b/c (Benefit-to-Cost Ratio)',
+                  'Fixation Probability vs b/c', 'fig2_fixation_vs_bc')
 
-    # Plot parochialist fixation probabilities (red line)
-    plt.plot(bc_values, parochialist_results, 'r-', label='Parochialists')
+def fig5_fixation_vs_alpha(runs=15, max_workers=4):
+    """
+    Generates Figure 5: Fixation probability vs alpha.
+    """
+    alpha_values = np.arange(0, 1.1, 0.1)
+    altruist_results = []
+    parochialist_results = []
 
-    # Add neutral mutant threshold (black dashed line)
-    plt.axhline(y=0.01, color='black', label='Selection')
+    for alpha in alpha_values:
+        config.alpha = alpha
 
-    # Add labels, title, legend, and grid
-    plt.xlabel('b/c (Benefit-to-Cost Ratio)')
-    plt.ylabel('Fixation Probability')
-    plt.title('Fixation Probability vs b/c')
-    plt.legend(loc='upper right')
-    plt.grid(True)
+        # Simulate for altruist mutants
+        print(f"\nSimulating for altruist mutants with alpha={alpha:.2f}")
+        altruist_fixation_prob = simulate_fixation_probabilities(runs, Strategy.ALTRUIST, max_workers)
+        altruist_results.append(altruist_fixation_prob)
 
-    # Add timestamp to the filename
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_file = f'plots/fig2_fixation_vs_bc_{timestamp}.png'
-    plt.savefig(output_file)
-    print(f"\nPlot saved to {output_file}")
+        # Simulate for parochialist mutants
+        print(f"\nSimulating for parochialist mutants with alpha={alpha:.2f}")
+        parochialist_fixation_prob = simulate_fixation_probabilities(runs, Strategy.PAROCHIALIST, max_workers)
+        parochialist_results.append(parochialist_fixation_prob)
 
-# Run all simulations and save figures
+    generate_plot(alpha_values, altruist_results, parochialist_results, 'Ingroup Interaction Probability (α)',
+                  'Fixation Probability vs α', 'fig5_fixation_vs_alpha')
+
 def main():
     runs = 10  # Number of simulations per data point
     max_workers = 8  # Number of threads
+
+    # Run all simulations and save figures
     fig2_fixation_vs_bc(runs, max_workers)
+    fig5_fixation_vs_alpha(runs, max_workers)
 
 if __name__ == "__main__":
     main()
