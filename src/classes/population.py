@@ -316,9 +316,8 @@ class Groups_Manager(Reproduction_Manager):
         Returns:
             list[tuple[list[Individual], list[Individual]]]: A list of paired groups.
         """
-        num_groups_involved = round(len(self.groups) * kappa) #TODO check if this is correct, kappa tends to be very small (tjr 0 en gros)
-        groups_involved = [group for group in random.sample(self.groups, num_groups_involved)]
-        groups_not_involved = [group for group in self.groups if group not in groups_involved]
+        groups_involved = []
+        groups_not_involved = []
 
         for group in self.groups:
             if random.random()< kappa:
