@@ -19,8 +19,8 @@ def main():
 
     # Uncomment to run all simulations and generate plots
     fig2_fixation_vs_bc(runs, max_workers)
-    # fig5_fixation_vs_alpha(runs, max_workers)
-    # fig7_fixation_vs_lambda(runs, max_workers)
+    fig5_fixation_vs_alpha(runs, max_workers)
+    fig7_fixation_vs_lambda(runs, max_workers)
 
     # Uncomment to run a single simulation
     # single_simulation(10, 10, Strategy.ALTRUIST)

@@ -149,11 +149,19 @@ class Population:
         """
         for group in self.groups:
             for individual in group:
+                # Find a random partner for the individual
                 partner = self.get_random_partner(individual)
                 if not partner:
                     continue
 
-                matrix = A_IN_MATRIX if self._get_group_index(individual) == self._get_group_index(partner) else A_OUT_MATRIX
+                if self._get_group_index(individual) == self._get_group_index(partner):
+                    # In-group interaction
+                    matrix = A_IN_MATRIX
+                else:
+                    # Out-group interaction
+                    matrix = A_OUT_MATRIX
+
+                # Calculate payoffs for both individuals
                 individual.calculate_payoff(partner, matrix)
                 partner.calculate_payoff(individual, matrix)
 
@@ -171,12 +179,16 @@ class Population:
         """
         Simulate reproduction and potential migration.
         """
+
+        # Select an individual for duplication
         new_individual, parent_group_idx = self._select_individual_for_duplication()
 
         if random.random() < lambda_mig:
+            # Migrate the new individual to a random group
             target_group_idx = random.choice([i for i in range(self.num_groups) if i != parent_group_idx])
             self.groups[target_group_idx].append(new_individual)
         else:
+            # Add the new individual to the parent group
             self.groups[parent_group_idx].append(new_individual)
 
     def _select_individual_for_duplication(self) -> tuple[Individual, int]:
@@ -186,18 +198,24 @@ class Population:
         Returns:
             tuple[Individual, int]: The individual and its group's index.
         """
+
+        # Calculate total fitness of the population
         total_fitness = sum(ind.fitness for group in self.groups for ind in group)
+
         if total_fitness == 0:
+            # If total fitness is zero, select a random individual
             random_group_idx = random.randint(0, self.num_groups - 1)
             random_individual = random.choice(self.groups[random_group_idx])
             return copy.deepcopy(random_individual), random_group_idx
 
-        individuals = [ind for group in self.groups for ind in group]
-        group_indices = [i for i, group in enumerate(self.groups) for _ in group]
-        probabilities = [ind.fitness / total_fitness for ind in individuals]
+        individuals = [ind for group in self.groups for ind in group] # Flatten the list
+        group_indices = [i for i, group in enumerate(self.groups) for _ in group] # Flatten the indices
+        probabilities = [ind.fitness / total_fitness for ind in individuals] # Calculate probabilities
 
-        selected = random.choices(individuals, weights=probabilities, k=1)[0]
-        selected_group_idx = group_indices[individuals.index(selected)]
+        selected = random.choices(individuals, weights=probabilities, k=1)[0] # Select an individual
+        selected_group_idx = group_indices[individuals.index(selected)] # Find its group index
+
+        # Return the individual and its group index
         return copy.deepcopy(selected), selected_group_idx
 
     # --- GROUP CONFLICT ---
@@ -210,12 +228,13 @@ class Population:
         Returns:
             list[tuple[list[Individual], list[Individual]]]: A list of paired groups.
         """
-        groups_involved = []
-        groups_not_involved = []
-
+        groups_involved = [] # List of groups involved in conflict
+        groups_not_involved = [] # List of groups not involved in conflict
+ 
         for group in self.groups:
-            if random.random()< kappa:
+            if random.random() < kappa:
                 groups_involved.append(group)
+
         groups_not_involved = [group for group in self.groups if group not in groups_involved]
 
         if (len(groups_involved) % 2) != 0:
@@ -250,29 +269,35 @@ class Population:
         """
         logging.info("Simulating conflicts between groups.")
 
-        paired_groups = self.pair_groups()
+        paired_groups = self.pair_groups() # Pair the groups for conflict
     
         if not paired_groups:
             logging.info("No groups paired for conflict. Skipping conflict resolution.")
             return
+        
         for group_1, group_2 in paired_groups:
+            # Calculate total payoffs for each group
             payoff_1 = sum(ind.payoff for ind in group_1)
             payoff_2 = sum(ind.payoff for ind in group_2)
             
             if payoff_1 == payoff_2:
+                # If payoffs are equal, choose a random winner
                 win_probability_1 = 0.5
             else:
+                # Calculate the probability of group 1 winning
                 win_probability_1 = payoff_1**(1 / z) / (payoff_1**(1 / z) + payoff_2**(1 / z))
             
             if random.random() < win_probability_1:
+                # Group 1 wins
                 winner, loser = group_1, group_2
             else:
+                # Group 2 wins
                 winner, loser = group_2, group_1
 
-            # Replace the losing group with a (copied) version of the winning group
-            new_group = copy.deepcopy(winner)
-            loser_index = self.groups.index(loser)
-            self.groups[loser_index] = new_group
+            # Replace the losing group with a copy of the winning group
+            new_group = copy.deepcopy(winner) # Deep copy the winning group
+            loser_index = self.groups.index(loser) # Find the index of the losing group
+            self.groups[loser_index] = new_group # Replace the losing group with the new group
             logging.info("Conflict resolved. Winner replaces loser.")
 
     # --- GROUP SPLITTING ---
@@ -284,19 +309,24 @@ class Population:
         Args:
             index (int): The index of the group to split.
         """
-        group = self.groups[index]
-        new_group_1, new_group_2 = [], []
+        group = self.groups[index] # Get the group to split
+        new_group_1, new_group_2 = [], [] # Initialize two new groups
 
         for individual in group:
+            # Assign each individual to a random new group
             (new_group_1 if random.random() < 0.5 else new_group_2).append(individual)
 
         if not new_group_1 or not new_group_2:
             logging.debug("One group is empty after split. Forcing redistribution.")
             self.split_group(index)
 
+        # Replace the original group with the first new group
         self.groups[index] = new_group_1
-        other_index = random.choice([i for i in range(len(self.groups)) if i != index])
-        self.groups[other_index] = new_group_2
+
+        # Replace a random group with the second new group
+        other_index = random.choice([i for i in range(len(self.groups)) if i != index]) # Find a random group index
+        self.groups[other_index] = new_group_2 # Replace the random group with the second new group
+
         logging.info(
             f"Group {index} split into two groups with sizes {len(new_group_1)} and {len(new_group_2)}."
         )
