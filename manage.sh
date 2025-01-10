@@ -52,23 +52,6 @@ case "$1" in
         echo "Simulation completed successfully."
         ;;
 
-    "run_all")
-        # Run all simulations
-        if [ ! -d "$ENV_DIR" ]; then
-            echo "Error: Virtual environment not found. Run './bash.sh setup' first."
-            exit 1
-        fi
-
-        source $ENV_DIR/bin/activate
-        echo "Running all simulations..."
-        for i in {1..5}; do
-            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            python -m src.main $i | tee $LOG_DIR/run_${i}_$TIMESTAMP.log
-            echo "Simulation $i completed. Logs saved to $LOG_DIR/run_${i}_$TIMESTAMP.log."
-        done
-        echo "All simulations completed successfully."
-        ;;
-
     "clean")
         # Clean up virtual environment and logs
         if [ -d "$ENV_DIR" ]; then
@@ -91,7 +74,6 @@ case "$1" in
     ./manage.sh clone
     ./manage.sh setup
     ./manage.sh run
-    ./manage.sh run_all
     ./manage.sh clean"
         ;;
 esac
