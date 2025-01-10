@@ -87,5 +87,5 @@ This project uses a bash script, `manage.sh`, to streamline common operations.
 4. **Clean up the Python Environment**
 
    ```bash
-   ./manage.sh run
+   ./manage.sh clean
    ```
