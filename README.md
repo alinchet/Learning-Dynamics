@@ -63,27 +63,29 @@ The model represents an **absorbing Markov chain** where a mutant strategy (eith
 
 ## **Installation**  
 
+This project uses a bash script, `manage.sh`, to streamline common operations.
+
 1. **Clone the Repository**  
+
    ```bash
-   git clone https://github.com/alinchet/Learning-Dynamics.git
+   ./manage.sh clone
    cd Learning-Dynamics
    ```
 
 2. **Set up a Python Environment**  
+
    ```bash
-   python3 -m venv env
-   source env/bin/activate
-   pip install -r requirements.txt
+   ./manage.sh setup
    ```
 
 3. **Run the Simulation**  
+
    ```bash
-   python -m src.main
+   ./manage.sh run
    ```
 
-3. **Run a Test**  
-   ```bash
-   python -m unittest discover -s test -p "test_individual.py"
-   python -m unittest discover -s test -p "test_population.py"
-   ```
+4. **Clean up the Python Environment**
 
+   ```bash
+   ./manage.sh run
+   ```

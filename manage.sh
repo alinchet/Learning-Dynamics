@@ -3,77 +3,88 @@
 # Exit script on any error
 set -e
 
-# Define variables
+# Define constants
 REPO_URL="https://github.com/alinchet/Learning-Dynamics.git"
 REPO_DIR="Learning-Dynamics"
 ENV_DIR="env"
 LOG_DIR="logs"
 
-# Check for arguments
-case "$1" in
-    "clone")
-        # Clone the repository
-        echo "Cloning the repository..."
-        git clone $REPO_URL
-        echo "Repository cloned successfully."
-        ;;
+# Functions
 
-    "setup")
-        # Set up a Python environment
-        echo "Setting up the Python environment..."
-        python3 -m venv $ENV_DIR
-        source $ENV_DIR/bin/activate
+clone_repo() {
+    echo "Cloning the repository..."
+    if [ -d "$REPO_DIR" ]; then
+        echo "Repository directory already exists. Skipping clone."
+    else
+        git clone "$REPO_URL" "$REPO_DIR"
+        echo "Repository cloned successfully."
+    fi
+}
+
+setup_env() {
+    echo "Setting up the Python environment..."
+    if [ -d "$ENV_DIR" ]; then
+        echo "Virtual environment already exists. Skipping setup."
+    else
+        python3 -m venv "$ENV_DIR"
+        source "$ENV_DIR/bin/activate"
         pip install -r requirements.txt
         echo "Python environment set up successfully."
+    fi
 
-        # Create a log folder if it doesn't exist
-        if [ ! -d "$LOG_DIR" ]; then
-            mkdir -p $LOG_DIR
-            echo "Log directory created successfully."
-        else
-            echo "Log directory already exists."
-        fi
+    echo "Creating log directory..."
+    mkdir -p "$LOG_DIR"
+    echo "Log directory is ready."
 
-        # Provide activation reminder
-        echo "To activate the environment, run: source $ENV_DIR/bin/activate"
+    echo "To activate the environment, run: source $ENV_DIR/bin/activate"
+}
+
+run_simulation() {
+    if [ ! -d "$ENV_DIR" ]; then
+        echo "Error: Virtual environment not found. Run './manage.sh setup' first."
+        exit 1
+    fi
+
+    source "$ENV_DIR/bin/activate"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    LOG_FILE="$LOG_DIR/simulation_$TIMESTAMP.log"
+    
+    echo "Running the simulation..."
+    python -m src.main 1 >> "$LOG_FILE" 2>&1
+    echo "Simulation completed successfully. Logs saved to $LOG_FILE"
+}
+
+clean_env() {
+    if [ -d "$ENV_DIR" ]; then
+        deactivate || true
+        rm -rf "$ENV_DIR"
+        echo "Removed virtual environment."
+    else
+        echo "No virtual environment found to clean."
+    fi
+
+    echo "Logs are preserved and not deleted."
+}
+
+# Main script
+case "$1" in
+    clone)
+        clone_repo
         ;;
-
-    "run")
-        # Run a single simulation
-        if [ ! -d "$ENV_DIR" ]; then
-            echo "Error: Virtual environment not found. Run './bash.sh setup' first."
-            exit 1
-        fi
-
-        source $ENV_DIR/bin/activate
-        echo "Running the simulation..."
-        TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        python -m src.main 1
-        echo "Simulation completed successfully."
+    setup)
+        setup_env
         ;;
-
-    "clean")
-        # Clean up virtual environment and logs
-        if [ -d "$ENV_DIR" ]; then
-            deactivate || true
-            rm -rf $ENV_DIR
-            echo "Removed virtual environment."
-        fi
-
-        if [ -d "$LOG_DIR" ]; then
-            rm -rf $LOG_DIR/*
-            echo "Cleared logs in $LOG_DIR."
-        fi
-
-        echo "Cleaned up temporary files."
+    run)
+        run_simulation
         ;;
-
+    clean)
+        clean_env
+        ;;
     *)
-        # Display usage instructions
         echo -e "Usage:
-    ./manage.sh clone
-    ./manage.sh setup
-    ./manage.sh run
-    ./manage.sh clean"
+    ./manage.sh clone   # Clone the repository
+    ./manage.sh setup   # Set up the Python environment and logs
+    ./manage.sh run     # Run a single simulation
+    ./manage.sh clean   # Clean up the virtual environment (logs are preserved)"
         ;;
 esac
